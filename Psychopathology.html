@@ -6,16 +6,15 @@
 <style>
 /* Layout: one-question-at-a-time study screen. Topic colour on the chip, progress bar and Next button; answer revealed in a warm highlighted panel. */
 :root{
-  --bg:#eef2f7;--ink:#101c2b;--mute:#4b5b6d;--panel:#ffffff;--line:#c6d1de;--ans:#fff3c4;--ansl:#8a5200;
-  --t-class:#1456a8;--t-mood:#7a3fb0;--t-trauma:#b0245a;--t-adhd:#0f7676;--t-eat:#a85408;--t-pd:#1e7a34;--t-pain:#c2410c;--t-ethics:#475569;
+  --bg:#0d1620;--ink:#eef3f9;--mute:#a3b4c6;--panel:#15263a;--line:#2b4157;--ans:#2b2510;--ansl:#f2b632;
+  --t-class:#6cb0ff;--t-mood:#c79bff;--t-trauma:#ff7eb0;--t-adhd:#52d6d6;--t-eat:#ffb15c;--t-pd:#6fdc8c;--t-pain:#ffa16b;--t-ethics:#b4c2d4;
   --font:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0d1620;--ink:#eef3f9;--mute:#a3b4c6;--panel:#15263a;--line:#2b4157;--ans:#2b2510;--ansl:#f2b632;
-  --t-class:#6cb0ff;--t-mood:#c79bff;--t-trauma:#ff7eb0;--t-adhd:#52d6d6;--t-eat:#ffb15c;--t-pd:#6fdc8c;--t-pain:#ffa16b;--t-ethics:#b4c2d4;color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0d1620;--ink:#eef3f9;--mute:#a3b4c6;--panel:#15263a;--line:#2b4157;--ans:#2b2510;--ansl:#f2b632;
-  --t-class:#6cb0ff;--t-mood:#c79bff;--t-trauma:#ff7eb0;--t-adhd:#52d6d6;--t-eat:#ffb15c;--t-pd:#6fdc8c;--t-pain:#ffa16b;--t-ethics:#b4c2d4;color-scheme:dark}
+/* Dark is the default; the Light/dark button switches to light. */
+:root[data-theme="light"]{
+  --bg:#eef2f7;--ink:#101c2b;--mute:#4b5b6d;--panel:#ffffff;--line:#c6d1de;--ans:#fff3c4;--ansl:#8a5200;
+  --t-class:#1456a8;--t-mood:#7a3fb0;--t-trauma:#b0245a;--t-adhd:#0f7676;--t-eat:#a85408;--t-pd:#1e7a34;--t-pain:#c2410c;--t-ethics:#475569;color-scheme:light}
 
 html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
 body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:400 clamp(17px,1.8vw,26px)/1.45 var(--font);
@@ -279,7 +278,7 @@ function next(){
   else end();
 }
 function back(){if(mode!="q")return;if(shown)show();else if(i>0){i--;show();reveal()}}
-function tg(){const r=document.documentElement,d=matchMedia("(prefers-color-scheme:dark)").matches,cur=r.dataset.theme||(d?"dark":"light");r.dataset.theme=cur=="dark"?"light":"dark"}
+function tg(){const r=document.documentElement;r.dataset.theme=(r.dataset.theme||"dark")=="dark"?"light":"dark"}
 $("go").onclick=next;$("prev").onclick=back;$("theme").onclick=tg;
 addEventListener("keydown",e=>{
   if(e.target.tagName=="INPUT")return;

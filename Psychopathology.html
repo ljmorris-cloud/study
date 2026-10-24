@@ -1,0 +1,296 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Psychopathology Revision Quiz</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one-question-at-a-time study screen. Topic colour on the chip, progress bar and Next button; answer revealed in a warm highlighted panel. */
+:root{
+  --bg:#eef2f7;--ink:#101c2b;--mute:#4b5b6d;--panel:#ffffff;--line:#c6d1de;--ans:#fff3c4;--ansl:#8a5200;
+  --t-class:#1456a8;--t-mood:#7a3fb0;--t-trauma:#b0245a;--t-adhd:#0f7676;--t-eat:#a85408;--t-pd:#1e7a34;--t-pain:#c2410c;--t-ethics:#475569;
+  --font:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d1620;--ink:#eef3f9;--mute:#a3b4c6;--panel:#15263a;--line:#2b4157;--ans:#2b2510;--ansl:#f2b632;
+  --t-class:#6cb0ff;--t-mood:#c79bff;--t-trauma:#ff7eb0;--t-adhd:#52d6d6;--t-eat:#ffb15c;--t-pd:#6fdc8c;--t-pain:#ffa16b;--t-ethics:#b4c2d4;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1620;--ink:#eef3f9;--mute:#a3b4c6;--panel:#15263a;--line:#2b4157;--ans:#2b2510;--ansl:#f2b632;
+  --t-class:#6cb0ff;--t-mood:#c79bff;--t-trauma:#ff7eb0;--t-adhd:#52d6d6;--t-eat:#ffb15c;--t-pd:#6fdc8c;--t-pain:#ffa16b;--t-ethics:#b4c2d4;color-scheme:dark}
+
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:400 clamp(17px,1.8vw,26px)/1.45 var(--font);
+  display:flex;flex-direction:column;padding-inline:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+[data-t=class]{--c:var(--t-class)}[data-t=mood]{--c:var(--t-mood)}[data-t=trauma]{--c:var(--t-trauma)}[data-t=adhd]{--c:var(--t-adhd)}
+[data-t=eat]{--c:var(--t-eat)}[data-t=pd]{--c:var(--t-pd)}[data-t=pain]{--c:var(--t-pain)}[data-t=ethics]{--c:var(--t-ethics)}
+
+header{display:flex;align-items:center;gap:1em;padding-block:.6em;border-bottom:1px solid var(--line)}
+.chip{font-weight:700;color:var(--c,var(--ink));border:2px solid var(--c,var(--line));border-radius:99px;padding:.1em .8em;min-width:0;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{flex:1;min-width:2em;height:.45em;background:var(--line);border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--c,var(--mute));transition:width .3s}
+.count{color:var(--mute);font-variant-numeric:tabular-nums;white-space:nowrap}
+main{flex:1;min-height:0;overflow:auto;padding-block:1em;max-width:1100px;width:100%;margin:0 auto;box-sizing:border-box}
+h1{font-size:1.8em;line-height:1.2;margin:.3em 0;text-wrap:balance}
+h2{font-size:1.4em;line-height:1.3;margin:.2em 0 .6em;font-weight:700;text-wrap:balance}
+p{max-width:65ch}
+.ans{background:var(--ans);border:2px solid var(--ansl);border-radius:.5em;padding:.5em 1.2em;margin-top:.8em}
+.ans b.l{color:var(--ansl);letter-spacing:.04em;text-transform:uppercase;font-size:.8em}
+.ans ul{margin:.3em 0;padding-left:1.2em}.ans li{margin:.35em 0}
+footer{display:flex;flex-wrap:wrap;gap:.8em;align-items:center;padding-block:.6em;border-top:1px solid var(--line)}
+button{font:700 .85em var(--font);color:var(--ink);background:var(--panel);border:2px solid var(--line);border-radius:.5em;padding:.4em 1.1em;cursor:pointer}
+button.go{background:var(--c,var(--ink));color:var(--bg);border-color:var(--c,var(--ink));flex:1;max-width:16em}
+button:focus-visible{outline:3px solid var(--ansl);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+.hint{margin-left:auto;color:var(--mute);font-size:.7em}
+.topics{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(15em,100%),1fr));gap:.8em;margin:1em 0}
+.topics button{border-color:var(--c,var(--ink));color:var(--c,var(--ink));text-align:left;padding:.7em 1em}
+.topics small{display:block;color:var(--mute);font-weight:400}
+.again{margin-top:.5em}
+@media(max-width:700px){.hint{display:none}.chip{max-width:48%}}
+@media(prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+
+<header><span class="chip" id="chip"></span><div class="bar"><i id="fill"></i></div><span class="count" id="count"></span></header>
+<main id="main"></main>
+<footer><button id="prev">Back</button><button class="go" id="go"></button><button id="theme" title="Switch light/dark (T)">Light/dark</button><span class="hint">Space or → : answer / next · ← : back</span></footer>
+
+<script>
+const T={class:"Classification and models",mood:"Depression, anxiety, schizophrenia",trauma:"Trauma and PTSD",adhd:"ADHD and sleep",eat:"Eating disorders",pd:"Personality disorders",pain:"Pain and dementia",ethics:"Ethics and telehealth"};
+const Q=[
+["class","Explain the difference between a <b>categorical</b> and a <b>dimensional</b> approach to classifying psychological disorders. Which does the <b>DSM-5</b> primarily adopt?",[
+"<b>Categorical:</b> disorders are distinct categories. A person either meets the diagnostic criteria or does not (e.g. major depressive disorder).",
+"<b>Dimensional:</b> symptoms lie along continua of severity, frequency or intensity (e.g. depressive symptoms from minimal to severe).",
+"The <b>DSM-5</b> primarily keeps a <b>categorical</b> approach, using defined criteria and thresholds.",
+"It adds some dimensional elements: severity specifiers, symptom ratings and dimensional assessment of personality pathology.",
+"Categorical helps communication and treatment planning. Dimensional better captures individual differences and the fact that symptoms run continuously through the population."]],
+["class","What are the potential <b>benefits</b> and <b>drawbacks</b> of diagnosing psychological disorders?",[
+"<b>Benefits:</b> consistent communication between clinicians and researchers; guides evidence-based treatment; access to services, funding and accommodations; supports research on risk factors, prevalence and treatment.",
+"<b>Drawbacks:</b> stigma and labelling; oversimplification that overlooks individual and cultural context; diagnostic overlap and comorbidity; false positives and false negatives at thresholds.",
+"Diagnosis is a useful clinical tool but should not replace an individualised understanding of the person’s difficulties, strengths and circumstances."]],
+["class","What is <b>minority stress theory</b>? How does it explain increased vulnerability to mental health conditions in minority populations?",[
+"Developed by <b>Ilan Meyer</b>: members of stigmatised minority groups face additional, chronic stress from prejudice, discrimination and marginalisation.",
+"<b>Distal stressors:</b> external events such as discrimination, harassment, rejection and violence.",
+"<b>Proximal stressors:</b> internal processes such as anticipating rejection, concealing identity and internalising negative societal attitudes.",
+"Stressors accumulate, raising distress and vulnerability to depression and anxiety (e.g. hypervigilance in social situations, withdrawal, persistent stress).",
+"Protective factors: supportive relationships, community belonging, affirming environments and coping resources.",
+"Disparities are explained by unequal social conditions, not by minority identity itself causing disorder."]],
+["class","Explain the <b>biopsychosocial model</b> of mental health. Describe each component and give two examples for each.",[
+"Mental health and disorders arise through <b>interactions</b> between biological, psychological and social influences.",
+"<b>Biological:</b> genetic, neurological and physiological influences. Examples: genetic vulnerability to depression; dysregulated stress-response systems.",
+"<b>Psychological:</b> thoughts, emotions, learning and behaviour. Examples: persistent negative thinking; avoidance that maintains anxiety.",
+"<b>Social:</b> relationships, culture and environment. Examples: chronic financial stress; social isolation or family conflict.",
+"Interaction example: genetic vulnerability to depression plus a relationship breakdown, then negative thinking and withdrawal maintain the depression.",
+"The model supports comprehensive assessment and treatment across biological, psychological and social levels."]],
+["class","What was the <b>bereavement exclusion</b> in earlier DSM editions, and why has its removal been controversial?",[
+"Earlier editions (including DSM-IV) generally discouraged diagnosing major depressive disorder when depressive symptoms followed the death of a loved one within about two months, unless severe features were present (marked impairment, suicidal ideation, psychotic symptoms, pronounced psychomotor retardation).",
+"<b>DSM-5 removed it</b>: a bereaved person can be diagnosed if they meet full criteria.",
+"<b>Support for removal:</b> bereavement can trigger a genuine major depressive episode, and excluding it could prevent diagnosis and treatment when symptoms are severe or dangerous.",
+"<b>Opposition:</b> grief is a normal response to loss and may involve sadness, sleep disturbance and reduced functioning, so removal risks pathologising normal grief and unnecessary treatment.",
+"Bereavement neither automatically indicates nor rules out a disorder. Consider symptom pattern, severity, duration, impairment and context."]],
+
+["mood","Summarise key findings from research on biological models of depression that challenge the idea that <b>low monoamine levels</b> cause depression.",[
+"The <b>monoamine hypothesis</b> links depression to reduced serotonin, noradrenaline and dopamine activity and shaped antidepressant development.",
+"<b>Inconsistent serotonin evidence:</b> a major umbrella review found no convincing, consistent evidence that depression is caused by low serotonin concentrations or activity.",
+"<b>Antidepressant action does not establish cause:</b> monoamine signalling changes quickly but therapeutic effects take weeks, suggesting longer-term adaptations matter.",
+"<b>Genetics are more complex:</b> no simple, consistent link between serotonin-related genes and depression.",
+"<b>Multiple processes implicated:</b> stress-response systems, neuroplasticity, neural circuits, inflammation, gene-environment interaction.",
+"Depression is a heterogeneous condition with interacting biological, psychological and environmental mechanisms, not simply a chemical deficiency."]],
+["mood","Identify <b>two key components of exposure therapy for panic disorder</b> and explain why it is effective.",[
+"<b>Interoceptive exposure:</b> deliberately inducing feared bodily sensations (dizziness, breathlessness, racing heart), e.g. spinning in a chair.",
+"<b>In vivo exposure:</b> gradually confronting feared or avoided situations such as shopping centres or public transport.",
+"Effective because clients learn the sensations and situations can be tolerated without the feared catastrophe. This builds new <b>inhibitory learning</b>, reduces avoidance and revises beliefs such as “a racing heart means a heart attack”.",
+"Repeated exposure reduces fear and builds confidence. It should be planned collaboratively and done safely."]],
+["mood","How does <b>metacognitive therapy (MCT)</b> differ from <b>cognitive therapy (CT)</b> for Generalised Anxiety Disorder?",[
+"<b>CT</b> targets the <b>content</b> of anxious thoughts: identify, evaluate and modify beliefs about feared outcomes (e.g. examine the evidence for “If I make a mistake, I will be fired”).",
+"<b>MCT</b> targets <b>beliefs about thinking</b> and the processes that maintain worry: the cognitive attentional syndrome (persistent worry, threat monitoring, unhelpful coping).",
+"MCT addresses positive beliefs (“Worrying helps me prepare”) and negative beliefs (“My worrying is uncontrollable and will damage my mind”).",
+"Techniques: detached mindfulness, postponing worry, testing beliefs about the need to worry.",
+"Key distinction: CT asks whether the thought is accurate. MCT asks about beliefs about worry and how the person responds to their thoughts."]],
+["mood","Describe the <b>negative symptoms</b> that may be seen in schizophrenia.",[
+"Negative symptoms are a <b>reduction or loss</b> of normal emotional, motivational or behavioural functioning.",
+"<b>Avolition:</b> reduced motivation to start and sustain goal-directed activity.",
+"<b>Anhedonia:</b> reduced ability to experience or anticipate pleasure.",
+"<b>Asociality:</b> reduced interest in or motivation for social relationships.",
+"<b>Blunted affect:</b> reduced emotional expression in face, voice or gestures.",
+"<b>Alogia:</b> reduced spontaneous speech.",
+"They impair education, work, relationships and independent living. Distinguish from positive symptoms (hallucinations, delusions) and from depression, medication side effects or social deprivation."]],
+["mood","Describe the <b>disorganised symptoms</b> that may be seen in schizophrenia.",[
+"Disruptions to thought, speech and behaviour that interfere with communication and everyday functioning.",
+"<b>Disorganised speech:</b> poorly connected ideas, e.g. derailment (shifting between unrelated ideas) and incoherence (largely incomprehensible).",
+"<b>Disorganised behaviour:</b> unpredictable, inappropriate or poorly goal-directed, e.g. dressing inappropriately for the weather or struggling with routine tasks.",
+"<b>Catatonic behaviour:</b> stupor, mutism, posturing or purposeless agitation. Clinically distinct and not exclusive to schizophrenia.",
+"Differs from negative symptoms: disorganisation is disrupted or inappropriate functioning, whereas negative symptoms are diminished normal functioning."]],
+
+["trauma","What causes the <b>discrepancy in PTSD rates</b> between different types of trauma?",[
+"Trauma types differ in severity and characteristics, but trauma type alone does not determine who develops PTSD.",
+"<b>Threat and severity:</b> perceived threat to life, serious injury, intense fear.",
+"<b>Intentionality and interpersonal betrayal:</b> deliberate violence, abuse and assault are especially damaging.",
+"<b>Duration and repetition:</b> prolonged or repeated exposure (ongoing abuse, combat).",
+"<b>Perceived control and predictability:</b> uncontrollable, unpredictable events increase helplessness.",
+"<b>Individual differences:</b> previous trauma, prior mental health difficulties, genetic vulnerability, coping resources.",
+"<b>Social support and later stress:</b> support protects; ongoing danger, stigma or lack of support raises risk.",
+"Also separate the probability of PTSD after exposure from overall case numbers, since exposure, reporting and access to diagnosis differ."]],
+["trauma","Explain the <b>fear conditioning model</b> of PTSD.",[
+"PTSD is explained partly by <b>learned associations</b> between trauma-related cues and danger. A neutral stimulus paired with intense fear (e.g. screeching tyres in a car crash) becomes frightening.",
+"<b>Classical conditioning:</b> the neutral cue becomes a conditioned stimulus that produces fear.",
+"<b>Stimulus generalisation:</b> fear spreads to similar cues (many roads or vehicles, not just the crash site).",
+"<b>Avoidance and impaired extinction:</b> avoiding reminders prevents learning that cues are now safe, so fear persists.",
+"Exposure-based treatments support new learning that reminders do not mean current danger.",
+"Limitation: influential, but does not explain every cognitive, social and biological feature of PTSD."]],
+
+["adhd","What is meant by a <b>transdiagnostic perspective</b>, and how does it apply to ADHD?",[
+"Focuses on psychological processes or mechanisms that occur <b>across multiple disorders</b> rather than treating each diagnosis as entirely separate.",
+"In ADHD: executive functioning, inhibitory control, attention regulation and emotion regulation difficulties affect many life areas and overlap with other conditions. ADHD often co-occurs with anxiety, depression and learning disorders.",
+"Supports treatment targeting shared mechanisms (e.g. organisational difficulties, emotional dysregulation) while keeping ADHD-specific diagnostic criteria.",
+"It does not mean ADHD is just another disorder, or that overlapping symptoms establish a shared diagnosis."]],
+["adhd","An adult with ADHD takes stimulant medication successfully but still has disorganisation and time management difficulties. Give <b>two non-pharmacological interventions</b> and the rationale.",[
+"<b>ADHD-adapted CBT:</b> breaking tasks into steps, prioritising, reducing procrastination, challenging unhelpful beliefs, building routines. Targets everyday functional problems directly, complementing medication.",
+"<b>ADHD coaching or organisational-skills training:</b> calendars, reminders, checklists, time-blocking, regular planning sessions. External prompts and routines reduce reliance on working memory and self-directed organisation.",
+"Both target functional difficulties that can remain even when medication improves attention. Effectiveness depends on individual needs and ongoing practice."]],
+["adhd","Define and describe <b>Insomnia Disorder</b>. Give a <b>predisposing</b>, <b>precipitating</b> and <b>perpetuating</b> factor.",[
+"Persistent difficulty initiating sleep, maintaining sleep or waking early, despite adequate opportunity for sleep, causing clinically significant distress or daytime impairment (fatigue, poor concentration).",
+"Chronic insomnia: at least <b>3 nights per week for at least 3 months</b>.",
+"<b>Predisposing:</b> raises vulnerability beforehand, e.g. high physiological arousal or family history of sleep difficulties.",
+"<b>Precipitating:</b> triggers onset, e.g. work stress, bereavement, acute illness.",
+"<b>Perpetuating:</b> maintains it after the trigger has passed, e.g. long time in bed trying to sleep, daytime naps, worry about consequences of poor sleep.",
+"Precipitating factors explain why it starts; perpetuating factors explain why it continues. <b>CBT-I</b> targets the perpetuating factors."]],
+["adhd","Describe <b>four features of Nightmare Disorder</b> and how psychological or behavioural interventions may be used.",[
+"Repeated, well-remembered, dysphoric dreams, usually involving threats to survival, security or physical integrity.",
+"<b>1.</b> Repeated disturbing dreams with negative emotional content.",
+"<b>2.</b> Rapid alertness and orientation on waking.",
+"<b>3.</b> Significant distress or impairment of sleep, mood, concentration or daytime functioning.",
+"<b>4.</b> Not better explained by substances, medication, another sleep disorder or another mental or medical condition.",
+"<b>Imagery Rehearsal Therapy (IRT):</b> rewrite a recurring nightmare into a less threatening version and rehearse it while awake.",
+"<b>CBT-based approaches</b> for sleep-related anxiety and unhelpful beliefs or behaviours; <b>relaxation and sleep routines</b> to reduce arousal.",
+"If linked to PTSD, treatment also addresses trauma-related symptoms."]],
+
+["eat","Describe the key components of <b>Cognitive Behaviour Therapy for Eating Disorders (CBT-ED)</b>.",[
+"A structured treatment targeting the thoughts, emotions and behaviours that maintain the eating disorder.",
+"<b>Psychoeducation and formulation</b> of what maintains the disorder.",
+"<b>Regular eating</b> (consistent meals and snacks) to reduce restriction, extreme hunger and binge vulnerability.",
+"<b>Self-monitoring</b> of eating, emotions and thoughts to find triggers.",
+"<b>Addressing overvaluation of weight and shape</b> in self-worth.",
+"<b>Behavioural interventions:</b> reducing dietary restraint, addressing bingeing and compensatory behaviours, graded exposure to feared foods.",
+"<b>Cognitive restructuring</b> of beliefs about food, weight, shape and self-evaluation.",
+"<b>Relapse prevention:</b> warning signs and strategies to maintain progress.",
+"Aim: interrupt the cycle where restriction, weight and shape concerns, and bingeing or compensatory behaviours reinforce each other."]],
+["eat","Briefly explain the role of the <b>Minnesota Starvation Study</b> in shaping our understanding of eating disorders.",[
+"<b>Ancel Keys</b> and colleagues studied prolonged semi-starvation in healthy male volunteers during and after WWII.",
+"Participants developed food preoccupation, irritability, anxiety and low mood, social withdrawal, reduced interest in other activities, cognitive difficulties and changed eating behaviour.",
+"Showed that starvation itself produces significant psychological symptoms, some resembling eating-disorder features.",
+"Helped show how restriction becomes <b>self-perpetuating</b> (undernutrition increases food preoccupation and distress) and supports the importance of <b>nutritional rehabilitation</b>.",
+"Limitation: it did not investigate anorexia nervosa directly. Participants were healthy men under imposed semi-starvation, so it cannot explain the psychological, developmental and sociocultural factors involved."]],
+
+["pd","Describe the core features of <b>borderline personality disorder (BPD)</b> and two factors implicated in its aetiology.",[
+"A pervasive pattern of instability in emotion regulation, relationships, self-image and impulse control.",
+"<b>Features:</b> fear of abandonment; unstable intense relationships (idealisation and devaluation); unstable identity; harmful impulsivity; recurrent suicidal behaviour or self-injury; emotional reactivity; chronic emptiness; intense anger; transient stress-related paranoia or dissociation.",
+"<b>Biological and temperamental vulnerability:</b> genetic influences, emotional sensitivity and impulsivity. These do not alone determine BPD.",
+"<b>Adverse developmental and environmental experiences:</b> maltreatment, neglect, invalidation or unstable caregiving, linked to difficulties with emotion regulation, trust and relationships.",
+"Biopsychosocial account: biological vulnerability interacts with environment. Neither is necessary or sufficient, and many people exposed to adversity do not develop BPD."]],
+["pd","Outline the general <b>DSM-5 diagnostic criteria for a personality disorder</b>.",[
+"An enduring pattern of inner experience and behaviour that deviates markedly from the individual’s culture.",
+"Shown in at least <b>two</b> of: <b>cognition</b>, <b>affectivity</b>, <b>interpersonal functioning</b>, <b>impulse control</b>.",
+"The pattern is <b>inflexible and pervasive</b> across personal and social situations.",
+"Causes clinically significant <b>distress or impairment</b>.",
+"<b>Stable</b> and traceable to adolescence or early adulthood.",
+"Not better explained by another mental disorder, and not due to a substance or medical condition.",
+"Assess with cultural context in mind. A diagnosis needs more than a few personality traits."]],
+
+["pain","Briefly describe the <b>biopsychosocial model of pain</b> and how it differs from the <b>biomedical model</b>.",[
+"Pain is shaped by interacting <b>biological</b> (tissue damage, inflammation, nerve injury, sensitisation), <b>psychological</b> (attention, expectations, fear, mood, beliefs) and <b>social</b> (family responses, workplace, culture, healthcare access) factors.",
+"<b>Biomedical model:</b> focuses mainly on physical pathology as the cause of pain and on treating the physical abnormality.",
+"<b>Biopsychosocial:</b> pain is a subjective experience influenced by more than tissue damage. Two people with similar injuries may report different pain because of anxiety, past experience, support and expectations.",
+"It does not mean pain is imaginary. Management may need medical, psychological and social approaches."]],
+["pain","Briefly explain how <b>chronic stress</b> can contribute to <b>chronic pain</b>.",[
+"<b>Stress-response activation:</b> prolonged HPA axis and sympathetic nervous system activation alters regulation and pain processing.",
+"<b>Central sensitisation:</b> increased responsiveness to painful stimulation, so pain is stronger or outlasts the original injury.",
+"<b>Muscle tension:</b> sustained tension contributes to headaches and musculoskeletal pain.",
+"<b>Psychological and behavioural effects:</b> worse sleep, more anxiety, hypervigilance to bodily sensations.",
+"Pain also raises stress, creating a reciprocal cycle. Mechanisms vary and not all chronic pain is caused by stress."]],
+["pain","Describe how <b>cortical</b> and <b>subcortical</b> categories of dementia differ.",[
+"<b>Cortical</b> (e.g. Alzheimer’s disease): mainly the cerebral cortex, with prominent higher-function deficits: memory impairment (learning and retaining new information), aphasia, apraxia and agnosia.",
+"<b>Subcortical</b> (e.g. Parkinson’s disease dementia, Huntington’s disease): structures beneath the cortex and their connections, with slowed processing, executive dysfunction (planning, problem-solving, flexibility), apathy and motor abnormalities.",
+"It is a useful clinical framework, not an absolute division. Many dementias affect both cortical and subcortical networks."]],
+["pain","List the <b>“4 As”</b> of Alzheimer’s dementia and explain why <b>cues</b> typically do not help memory problems in this condition.",[
+"<b>Amnesia:</b> impaired memory, especially learning and retaining new information.",
+"<b>Aphasia:</b> language difficulties, e.g. naming objects or understanding words.",
+"<b>Apraxia:</b> difficulty performing learned purposeful actions despite adequate basic motor ability.",
+"<b>Agnosia:</b> difficulty recognising familiar objects or people despite adequate sensory function.",
+"The memory problem is mainly in <b>encoding and consolidating</b> new information (medial temporal damage, including the hippocampus).",
+"A cue helps retrieve information that is stored but hard to access. It cannot reliably recover information that was never consolidated.",
+"Qualification: cues often give <b>limited</b> benefit, not none. It varies with stage, task and individual."]],
+
+["ethics","Drawing on the <b>AHPRA Code of Conduct</b>, describe the additional <b>confidentiality and privacy</b> considerations in <b>telehealth</b>.",[
+"The same obligations apply online as face-to-face, with added technological and environmental risks.",
+"<b>Secure technology:</b> suitable platforms; understand how information is transmitted and stored; prevent unauthorised access.",
+"<b>Private environments:</b> practitioner in a confidential setting; support the client to access privacy where possible.",
+"<b>Informed consent:</b> explain how telehealth works; tell clients if sessions are recorded or AI transcription is used and obtain consent.",
+"<b>Third-party access:</b> establish who is present and that the client agrees.",
+"<b>Electronic records and communication:</b> secure handling, access controls and storage.",
+"<b>Limits of confidentiality:</b> explain them and comply with legal disclosure requirements.",
+"Confirm client identity and whether telehealth is clinically appropriate. If privacy or safety cannot be maintained, consider alternatives. The practitioner remains responsible for professional standards."]],
+["ethics","The AHPRA Code identifies practitioner health and wellbeing as a core principle. Define <b>self-care</b> and discuss its role in supporting practitioner health and wellbeing.",[
+"<b>Self-care:</b> deliberate activities and strategies to maintain physical, psychological and emotional wellbeing (sleep, exercise, breaks, boundaries, supervision, seeking support).",
+"<b>Reduces stress and burnout:</b> rest, recovery and stress management prevent emotional exhaustion.",
+"<b>Supports professional judgement:</b> fatigue and distress impair concentration, decisions and emotion regulation.",
+"<b>Protects therapeutic relationships:</b> helps maintain empathy, boundaries and communication.",
+"<b>Promotes early help-seeking</b> before difficulties escalate or affect clinical work.",
+"A personal and professional responsibility, shared with employers. It does not replace supervision, workload management or organisational support. If health affects safe practice, seek help and protect patients from harm."]]
+];
+
+const $=id=>document.getElementById(id);
+let mode="menu",list=[],i=0,shown=false,sel="all";
+function shuffle(a){a=a.slice();for(let n=a.length-1;n>0;n--){const j=Math.floor(Math.random()*(n+1));[a[n],a[j]]=[a[j],a[n]]}return a}
+function menu(){
+  mode="menu";list=[];
+  $("chip").textContent="Revision quiz";$("chip").removeAttribute("data-t");document.body.removeAttribute("data-t");
+  $("fill").style.width="0";$("count").textContent="";
+  $("main").innerHTML="<h1>Psychopathology revision</h1><p>"+Q.length+" short-answer questions across eight topics. Each question appears first. Reveal the model answer when you are ready. The order is shuffled every time you start.</p><div class=\"topics\" id=\"tp\"></div>";
+  const mk=(k,n,d)=>{const b=document.createElement("button");if(k!=="all")b.dataset.t=k;b.innerHTML=n+"<small>"+d+"</small>";b.onclick=()=>start(k);$("tp").appendChild(b)};
+  mk("all","All topics, shuffled",Q.length+" questions");
+  Object.keys(T).forEach(k=>mk(k,T[k],Q.filter(q=>q[0]==k).length+" questions"));
+  $("go").textContent="Start all "+Q.length+", shuffled";$("go").disabled=false;$("prev").disabled=true;
+}
+function start(k){sel=k;list=shuffle(Q.filter(q=>k=="all"||q[0]==k));i=0;mode="q";show()}
+function show(){
+  shown=false;const q=list[i];
+  document.body.dataset.t=q[0];$("chip").dataset.t=q[0];$("chip").textContent=T[q[0]];
+  $("count").textContent=(i+1)+" / "+list.length;$("fill").style.width=((i+1)/list.length*100)+"%";
+  $("main").innerHTML="<h2>"+q[1]+"</h2><div id=\"a\"></div>";$("main").scrollTop=0;
+  $("go").textContent="Show answer";$("go").disabled=false;$("prev").disabled=i==0;
+}
+function reveal(){
+  const q=list[i];
+  $("a").outerHTML="<div class=\"ans\" id=\"a\"><b class=\"l\">Model answer</b><ul>"+q[2].map(x=>"<li>"+x+"</li>").join("")+"</ul></div>";
+  shown=true;$("go").textContent=i==list.length-1?"Finish":"Next question";$("a").scrollIntoView({block:"nearest"});
+}
+function end(){
+  mode="end";document.body.removeAttribute("data-t");$("chip").removeAttribute("data-t");$("chip").textContent="Revision quiz";
+  $("main").innerHTML="<h1>That’s the lot.</h1><p>"+list.length+" questions done. A good next step is to write the answers you found hardest from memory in 3 to 5 minutes each.</p><button class=\"again\" id=\"again\">Shuffle and go again</button>";
+  $("again").onclick=()=>start(sel);
+  $("go").textContent="Back to topics";$("prev").disabled=true;
+}
+function next(){
+  if(mode=="menu")start("all");
+  else if(mode=="end")menu();
+  else if(!shown)reveal();
+  else if(i<list.length-1){i++;show()}
+  else end();
+}
+function back(){if(mode!="q")return;if(shown)show();else if(i>0){i--;show();reveal()}}
+function tg(){const r=document.documentElement,d=matchMedia("(prefers-color-scheme:dark)").matches,cur=r.dataset.theme||(d?"dark":"light");r.dataset.theme=cur=="dark"?"light":"dark"}
+$("go").onclick=next;$("prev").onclick=back;$("theme").onclick=tg;
+addEventListener("keydown",e=>{
+  if(e.target.tagName=="INPUT")return;
+  if(e.key==" "||e.key=="ArrowRight"||e.key=="Enter"){
+    if(e.target.tagName=="BUTTON"&&e.key!="ArrowRight")return;
+    if(mode=="menu")return;
+    e.preventDefault();next();
+  }else if(e.key=="ArrowLeft")back();
+  else if(e.key=="t"||e.key=="T")tg();
+});
+menu();
+</script>
+
+</body></html>

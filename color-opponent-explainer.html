@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>How your brain sees color</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#100e1a;
+    --panel:#1a1630;
+    --panel-alt:#221c3d;
+    --line: rgba(232,179,74,0.16);
+    --text:#f2ede1;
+    --muted:#9c92bd;
+    --gold:#e8b34a;
+    --red:#e2645a;
+    --green:#4fbb8e;
+    --blue:#5a94ea;
+    --yellow:#e0b34a;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--bg); }
+  body{
+    font-family:'Inter', system-ui, sans-serif;
+    color:var(--text);
+    padding: 48px 20px 80px;
+    display:flex;
+    justify-content:center;
+  }
+  .stage{ width:100%; max-width:760px; }
+
+  header{ text-align:center; margin-bottom:56px; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(30px,5vw,44px);
+    line-height:1.08;
+    margin:0 0 12px;
+  }
+  h1 em{ font-style:italic; font-weight:500; color:var(--gold); }
+  .sub{ font-size:15px; color:var(--muted); margin:0; }
+
+  section.step{ margin-bottom:52px; }
+  .step-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .step-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:26px 26px 22px;
+  }
+
+  /* --- spectrum control --- */
+  .spectrum-wrap{ position:relative; height:64px; border-radius:10px; overflow:hidden; }
+  .spectrum-wrap svg{ position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; }
+  .spectrum-wrap input[type=range]{
+    -webkit-appearance:none; appearance:none;
+    position:absolute; inset:0; width:100%; height:100%;
+    margin:0; opacity:0; cursor:pointer; background:transparent;
+  }
+  .spectrum-wrap input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:64px; height:64px; }
+  .spectrum-wrap input[type=range]::-moz-range-thumb{ width:64px; height:64px; border:none; background:transparent; }
+  .spectrum-focus:focus-within{ outline:2px solid var(--gold); outline-offset:3px; border-radius:12px; }
+
+  .wl-row{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-top:16px;
+  }
+  .wl-readout{ font-family:'JetBrains Mono', monospace; font-size:22px; }
+  .wl-readout span{ color:var(--gold); }
+  .wl-hint{ font-size:12px; color:var(--muted); }
+
+  .presets{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .presets button{
+    font-family:'Inter', sans-serif;
+    font-size:12px;
+    color:var(--muted);
+    background:var(--panel-alt);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:6px 14px;
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  .presets button:hover, .presets button:focus-visible{ border-color:var(--gold); color:var(--text); }
+
+  /* --- cone chart --- */
+  .cone-chart-wrap{ position:relative; }
+  svg.chart{ width:100%; height:auto; display:block; }
+  .cone-legend{ display:flex; gap:22px; margin-top:14px; flex-wrap:wrap; }
+  .cone-legend .item{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  .cone-legend .dot{ width:10px; height:10px; border-radius:50%; }
+  .cone-legend .val{ font-family:'JetBrains Mono', monospace; color:var(--text); margin-left:2px; }
+
+  /* --- opponent gauges --- */
+  .gauges{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:560px){ .gauges{ grid-template-columns:1fr; } }
+  .gauge-title{ font-size:14px; font-weight:600; margin:0 0 3px; }
+  .gauge-formula{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted); margin:0 0 16px; }
+  .gauge-track{ position:relative; height:12px; border-radius:8px; background:var(--panel-alt); overflow:hidden; }
+  .gauge-mid{ position:absolute; left:50%; top:0; bottom:0; width:1px; background:rgba(255,255,255,0.25); }
+  .gauge-fill{ position:absolute; top:0; bottom:0; border-radius:8px; }
+  .gauge-caption{ margin-top:12px; font-size:13px; color:var(--text); min-height:20px; }
+  .gauge-caption .num{ font-family:'JetBrains Mono', monospace; color:var(--muted); }
+
+  /* --- result --- */
+  .result-wrap{ display:flex; align-items:center; gap:28px; }
+  @media (max-width:520px){ .result-wrap{ flex-direction:column; text-align:center; } }
+  .swatch{
+    width:118px; height:118px; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.15);
+    flex-shrink:0;
+    transition:background-color .12s linear;
+  }
+  .result-text{ font-size:15px; line-height:1.6; color:var(--muted); }
+  .result-text b{ color:var(--text); font-weight:600; }
+
+  footer{
+    margin-top:64px;
+    border-top:1px solid var(--line);
+    padding-top:24px;
+    font-size:13px;
+    line-height:1.7;
+    color:var(--muted);
+  }
+  footer b{ color:var(--text); font-weight:600; }
+
+  /* --- pathway diagram --- */
+  .pathway{ margin-bottom:56px; }
+  .pathway svg{ width:100%; height:auto; display:block; }
+  .pathway-label{ font-family:'JetBrains Mono', monospace; font-size:10px; fill:var(--muted); letter-spacing:.06em; }
+
+  /* --- firing neurons --- */
+  .neurons{ display:flex; justify-content:space-around; margin-top:22px; padding-top:20px; border-top:1px solid var(--line); }
+  .neuron{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .neuron svg{ width:72px; height:72px; overflow:visible; }
+  .neuron-label{ font-size:12px; color:var(--muted); text-align:center; }
+  .neuron-label b{ color:var(--text); font-family:'JetBrains Mono', monospace; font-weight:500; }
+
+  /* --- afterimage demo --- */
+  .demo-box{
+    position:relative; height:200px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--panel-alt); overflow:hidden; transition:background-color .25s ease;
+  }
+  .demo-cross{ position:relative; width:26px; height:26px; z-index:2; }
+  .demo-cross::before, .demo-cross::after{ content:''; position:absolute; background:rgba(0,0,0,0.65); }
+  .demo-cross::before{ left:50%; top:0; bottom:0; width:2px; margin-left:-1px; }
+  .demo-cross::after{ top:50%; left:0; right:0; height:2px; margin-top:-1px; }
+  .demo-ring{ position:absolute; inset:14px; border-radius:50%; pointer-events:none; }
+  .demo-controls{ display:flex; align-items:center; gap:14px; margin-top:16px; }
+  .demo-btn{
+    font-family:'Inter', sans-serif; font-size:13px; font-weight:500;
+    color:var(--bg); background:var(--gold); border:none; border-radius:20px;
+    padding:9px 20px; cursor:pointer;
+  }
+  .demo-btn:disabled{ opacity:.4; cursor:default; }
+  .demo-status{ font-size:13px; color:var(--muted); flex:1; }
+  .demo-status b{ color:var(--text); }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <header>
+    <p class="eyebrow">An instrument for opponent-process theory</p>
+    <h1>How your brain<br>sees <em>color</em></h1>
+    <p class="sub">Three cones. One subtraction. Every hue you've ever seen.</p>
+  </header>
+
+  <section class="step">
+    <div class="step-label">01 — pick a wavelength</div>
+    <div class="panel">
+      <div class="spectrum-wrap spectrum-focus">
+        <svg id="specSvg" viewBox="0 0 640 64" preserveAspectRatio="none"></svg>
+        <input type="range" id="wlSlider" min="400" max="700" step="1" value="550" aria-label="Wavelength in nanometers">
+      </div>
+      <div class="wl-row">
+        <div class="wl-readout">&lambda; = <span id="wlVal">550</span> nm</div>
+        <div class="wl-hint">drag the bar, or use ←/→</div>
+      </div>
+      <div class="presets" id="presets"></div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-label">02 — your three cones fire</div>
+    <div class="panel cone-chart-wrap">
+      <svg class="chart" id="coneChart" viewBox="0 0 640 200"></svg>
+      <div class="cone-legend">
+        <div class="item"><span class="dot" style="background:var(--blue)"></span>S cone <span class="val" id="sVal">0.00</span></div>
+        <div class="item"><span class="dot" style="background:var(--green)"></span>M cone <span class="val" id="mVal">0.00</span></div>
+        <div class="item"><span class="dot" style="background:var(--red)"></span>L cone <span class="val" id="lVal">0.00</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-label">03 — the brain subtracts</div>
+    <div class="panel">
+      <div class="gauges">
+        <div>
+          <p class="gauge-title">Red &harr; green</p>
+          <p class="gauge-formula">L &minus; M</p>
+          <div class="gauge-track"><div class="gauge-mid"></div><div class="gauge-fill" id="rgFill"></div></div>
+          <p class="gauge-caption" id="rgCaption"></p>
+        </div>
+        <div>
+          <p class="gauge-title">Blue &harr; yellow</p>
+          <p class="gauge-formula">S &minus; (L + M)</p>
+          <div class="gauge-track"><div class="gauge-mid"></div><div class="gauge-fill" id="byFill"></div></div>
+          <p class="gauge-caption" id="byCaption"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-label">04 — what you see</div>
+    <div class="panel">
+      <div class="result-wrap">
+        <div class="swatch" id="swatch"></div>
+        <p class="result-text" id="resultText"></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <b>Why this matters:</b> the LGN doesn't pass wavelength to your brain directly &mdash; it recodes it into two opponent signals, red-vs-green and blue-vs-yellow, plus a third for light-vs-dark. That's why you can imagine reddish-yellow (orange) but never reddish-green: the two ends of one channel can't fire at once. It's also why staring at red and looking away leaves a green afterimage &mdash; the channel overshoots the other way once the stimulus is gone.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var W_MIN = 400, W_MAX = 700;
+
+  function Lsens(wl){ return Math.exp(-0.5 * Math.pow((wl-565)/40, 2)); }
+  function Msens(wl){ return Math.exp(-0.5 * Math.pow((wl-535)/35, 2)); }
+  function Ssens(wl){ return Math.exp(-0.5 * Math.pow((wl-445)/25, 2)); }
+
+  function wavelengthToRGB(wl){
+    var r,g,b;
+    if(wl>=380 && wl<440){ r=-(wl-440)/(440-380); g=0; b=1; }
+    else if(wl>=440 && wl<490){ r=0; g=(wl-440)/(490-440); b=1; }
+    else if(wl>=490 && wl<510){ r=0; g=1; b=-(wl-510)/(510-490); }
+    else if(wl>=510 && wl<580){ r=(wl-510)/(580-510); g=1; b=0; }
+    else if(wl>=580 && wl<645){ r=1; g=-(wl-645)/(645-580); b=0; }
+    else if(wl>=645 && wl<=780){ r=1; g=0; b=0; }
+    else { r=0; g=0; b=0; }
+    var factor;
+    if(wl>=380 && wl<420) factor = 0.3 + 0.7*(wl-380)/(420-380);
+    else if(wl>=420 && wl<701) factor = 1.0;
+    else if(wl>=701 && wl<=780) factor = 0.3 + 0.7*(780-wl)/(780-700);
+    else factor = 0.0;
+    var gamma = 0.8;
+    function adj(c){ return c===0 ? 0 : Math.round(255 * Math.pow(c*factor, gamma)); }
+    return [adj(r), adj(g), adj(b)];
+  }
+
+  function opponentToColour(rg, by){
+    var rgS = Math.max(-1, Math.min(1, rg*2.5));
+    var byS = Math.max(-1, Math.min(1, by*2.5));
+    var rgb = [0.5, 0.5, 0.5];
+    if(rgS > 0){ rgb[0] += 0.5*rgS; } else { rgb[1] += 0.5*(-rgS); }
+    if(byS > 0){ rgb[2] += 0.5*byS; }
+    else { rgb[0] += 0.35*(-byS); rgb[1] += 0.35*(-byS); }
+    return rgb.map(function(v){ return Math.round(255*Math.max(0, Math.min(1, v))); });
+  }
+
+  var specSvg = document.getElementById('specSvg');
+  var stops = [];
+  for(var wl = W_MIN; wl <= W_MAX; wl += 15){
+    var c = wavelengthToRGB(wl);
+    stops.push('<stop offset="'+ (100*(wl-W_MIN)/(W_MAX-W_MIN)) +'%" stop-color="rgb('+c[0]+','+c[1]+','+c[2]+')"/>');
+  }
+  var handleX = 0;
+  specSvg.innerHTML =
+    '<defs><linearGradient id="specGrad" x1="0" y1="0" x2="1" y2="0">' + stops.join('') + '</linearGradient></defs>' +
+    '<rect x="0" y="0" width="640" height="64" rx="10" fill="url(#specGrad)"/>' +
+    '<rect id="specDim" x="0" y="0" width="640" height="64" rx="10" fill="black" opacity="0.28"/>' +
+    '<g id="handleGroup">' +
+      '<rect id="handleGlow" y="0" width="6" height="64" fill="var(--gold)" opacity="0.9"/>' +
+      '<circle id="handleDot" cy="32" r="7" fill="var(--gold)" stroke="var(--bg)" stroke-width="2"/>' +
+    '</g>';
+
+  var coneChart = document.getElementById('coneChart');
+  var padL = 30, padR = 10, padT = 14, padB = 26, cw = 640-padL-padR, ch = 200-padT-padB;
+  function xPos(wl){ return padL + (wl-W_MIN)/(W_MAX-W_MIN)*cw; }
+  function yPos(v){ return padT + (1-v)*ch; }
+  function buildPath(fn){
+    var d = '';
+    for(var wl = W_MIN; wl <= W_MAX; wl += 3){
+      d += (wl===W_MIN?'M':'L') + xPos(wl).toFixed(1) + ' ' + yPos(fn(wl)).toFixed(1) + ' ';
+    }
+    return d;
+  }
+  var gridLines = '';
+  for(var gwl=450; gwl<700; gwl+=50){
+    gridLines += '<line x1="'+xPos(gwl).toFixed(1)+'" y1="'+padT+'" x2="'+xPos(gwl).toFixed(1)+'" y2="'+(padT+ch)+'" stroke="rgba(255,255,255,0.06)"/>' +
+      '<text x="'+xPos(gwl).toFixed(1)+'" y="'+(padT+ch+18)+'" fill="var(--muted)" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">'+gwl+'</text>';
+  }
+  coneChart.innerHTML =
+    gridLines +
+    '<line x1="'+padL+'" y1="'+(padT+ch)+'" x2="'+(padL+cw)+'" y2="'+(padT+ch)+'" stroke="rgba(255,255,255,0.15)"/>' +
+    '<path d="'+buildPath(Ssens)+'" fill="none" stroke="var(--blue)" stroke-width="2.5"/>' +
+    '<path d="'+buildPath(Msens)+'" fill="none" stroke="var(--green)" stroke-width="2.5"/>' +
+    '<path d="'+buildPath(Lsens)+'" fill="none" stroke="var(--red)" stroke-width="2.5"/>' +
+    '<line id="coneCursor" x1="0" y1="'+padT+'" x2="0" y2="'+(padT+ch)+'" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="3,3"/>' +
+    '<circle id="sDot" r="5" fill="var(--blue)" stroke="var(--bg)" stroke-width="1.5"/>' +
+    '<circle id="mDot" r="5" fill="var(--green)" stroke="var(--bg)" stroke-width="1.5"/>' +
+    '<circle id="lDot" r="5" fill="var(--red)" stroke="var(--bg)" stroke-width="1.5"/>';
+
+  var slider = document.getElementById('wlSlider');
+  var wlVal = document.getElementById('wlVal');
+  var handleGroup = document.getElementById('handleGroup');
+  var sDot = document.getElementById('sDot'), mDot = document.getElementById('mDot'), lDot = document.getElementById('lDot');
+  var coneCursor = document.getElementById('coneCursor');
+  var sVal = document.getElementById('sVal'), mVal = document.getElementById('mVal'), lVal = document.getElementById('lVal');
+  var rgFill = document.getElementById('rgFill'), byFill = document.getElementById('byFill');
+  var rgCaption = document.getElementById('rgCaption'), byCaption = document.getElementById('byCaption');
+  var swatch = document.getElementById('swatch');
+  var resultText = document.getElementById('resultText');
+
+  function fmt(n){ return (n>=0?'+':'') + n.toFixed(2); }
+
+  function update(wl){
+    wl = Math.round(wl);
+    slider.value = wl;
+    wlVal.textContent = wl;
+
+    var s = Ssens(wl), m = Msens(wl), l = Lsens(wl);
+    var rg = l - m;
+    var by = s - (l+m);
+
+    var hx = xPos(wl);
+    document.getElementById('handleGlow').setAttribute('x', hx-3);
+    document.getElementById('handleDot').setAttribute('cx', hx);
+    coneCursor.setAttribute('x1', hx); coneCursor.setAttribute('x2', hx);
+    sDot.setAttribute('cx', hx); sDot.setAttribute('cy', yPos(s));
+    mDot.setAttribute('cx', hx); mDot.setAttribute('cy', yPos(m));
+    lDot.setAttribute('cx', hx); lDot.setAttribute('cy', yPos(l));
+
+    sVal.textContent = s.toFixed(2);
+    mVal.textContent = m.toFixed(2);
+    lVal.textContent = l.toFixed(2);
+
+    var rgClamped = Math.max(-1, Math.min(1, rg*2.5));
+    var byClamped = Math.max(-1, Math.min(1, by*2.5));
+    if(rgClamped >= 0){
+      rgFill.style.left = '50%'; rgFill.style.width = (rgClamped*50)+'%';
+      rgFill.style.background = 'var(--red)';
+    } else {
+      rgFill.style.left = (50+rgClamped*50)+'%'; rgFill.style.width = (-rgClamped*50)+'%';
+      rgFill.style.background = 'var(--green)';
+    }
+    if(byClamped >= 0){
+      byFill.style.left = '50%'; byFill.style.width = (byClamped*50)+'%';
+      byFill.style.background = 'var(--blue)';
+    } else {
+      byFill.style.left = (50+byClamped*50)+'%'; byFill.style.width = (-byClamped*50)+'%';
+      byFill.style.background = 'var(--yellow)';
+    }
+
+    rgCaption.innerHTML = Math.abs(rg) < 0.05
+      ? 'L &asymp; M &mdash; almost no red/green signal <span class="num">('+fmt(rg)+')</span>'
+      : (rg > 0
+          ? '<b style="color:var(--red)">L wins</b> &mdash; reads as red <span class="num">('+fmt(rg)+')</span>'
+          : '<b style="color:var(--green)">M wins</b> &mdash; reads as green <span class="num">('+fmt(rg)+')</span>');
+
+    byCaption.innerHTML = Math.abs(by) < 0.05
+      ? 'S &asymp; L+M &mdash; almost no blue/yellow signal <span class="num">('+fmt(by)+')</span>'
+      : (by > 0
+          ? '<b style="color:var(--blue)">S wins</b> &mdash; reads as blue <span class="num">('+fmt(by)+')</span>'
+          : '<b style="color:var(--yellow)">L+M wins</b> &mdash; reads as yellow <span class="num">('+fmt(by)+')</span>');
+
+    var rgb = opponentToColour(rg, by);
+    var rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+    swatch.style.background = rgbStr;
+    swatch.style.boxShadow = '0 0 32px -6px ' + rgbStr;
+
+    var rgWord = rg > 0.05 ? 'red' : (rg < -0.05 ? 'green' : 'neutral');
+    var byWord = by > 0.05 ? 'blue' : (by < -0.05 ? 'yellow' : 'neutral');
+    resultText.innerHTML = 'At <b>'+wl+' nm</b>, the red&ndash;green channel leans <b>'+rgWord+'</b> and the blue&ndash;yellow channel leans <b>'+byWord+'</b>. Combine the two and this is the color your brain reconstructs &mdash; built entirely from two subtractions, not from wavelength itself.';
+  }
+
+  slider.addEventListener('input', function(){ update(this.value); });
+
+  var presets = [[460,'Blue'],[490,'Cyan'],[520,'Green'],[570,'Yellow'],[600,'Orange'],[650,'Red']];
+  var presetWrap = document.getElementById('presets');
+  presets.forEach(function(p){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = p[1] + ' \u00b7 ' + p[0] + 'nm';
+    btn.addEventListener('click', function(){ update(p[0]); });
+    presetWrap.appendChild(btn);
+  });
+
+  update(550);
+})();
+</script>
+</body>
+</html>

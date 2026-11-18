@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>How your brain sees color</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#100e1a;
+    --panel:#1a1630;
+    --panel-alt:#221c3d;
+    --line: rgba(232,179,74,0.16);
+    --text:#f2ede1;
+    --muted:#9c92bd;
+    --gold:#e8b34a;
+    --red:#e2645a;
+    --green:#4fbb8e;
+    --blue:#5a94ea;
+    --yellow:#e0b34a;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--bg); }
+  body{
+    font-family:'Inter', system-ui, sans-serif;
+    color:var(--text);
+    padding: 48px 20px 80px;
+    display:flex;
+    justify-content:center;
+  }
+  .stage{ width:100%; max-width:760px; }
+
+  .layout{ display:block; }
+
+  @media (min-width:900px){
+    .stage{ max-width:1040px; }
+    .layout{
+      display:grid;
+      grid-template-columns: 340px 1fr;
+      grid-template-areas:
+        "picker chart"
+        "cells  cells"
+        "gauges result";
+      gap:32px 36px;
+      align-items:start;
+    }
+    .step-picker{ grid-area:picker; }
+    .step-chart{ grid-area:chart; }
+    .step-cells{ grid-area:cells; }
+    .step-gauges{ grid-area:gauges; }
+    .step-result{ grid-area:result; }
+    .step-gauges .panel, .step-result .panel{ height:100%; }
+    .layout .step{ margin-bottom:0; }
+  }
+
+  header{ text-align:center; margin-bottom:56px; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.18em;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin:0 0 14px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(30px,5vw,44px);
+    line-height:1.08;
+    margin:0 0 12px;
+  }
+  h1 em{ font-style:italic; font-weight:500; color:var(--gold); }
+  .sub{ font-size:15px; color:var(--muted); margin:0; }
+
+  section.step{ margin-bottom:52px; }
+  .step-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    color:var(--muted);
+    text-transform:uppercase;
+    margin-bottom:16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .step-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:var(--line);
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:26px 26px 22px;
+  }
+
+  /* --- spectrum control --- */
+  .spectrum-wrap{ position:relative; height:64px; border-radius:10px; overflow:hidden; }
+  .spectrum-wrap svg{ position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; }
+  .spectrum-wrap input[type=range]{
+    -webkit-appearance:none; appearance:none;
+    position:absolute; inset:0; width:100%; height:100%;
+    margin:0; opacity:0; cursor:pointer; background:transparent;
+  }
+  .spectrum-wrap input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:64px; height:64px; }
+  .spectrum-wrap input[type=range]::-moz-range-thumb{ width:64px; height:64px; border:none; background:transparent; }
+  .spectrum-focus:focus-within{ outline:2px solid var(--gold); outline-offset:3px; border-radius:12px; }
+
+  .wl-row{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-top:16px;
+  }
+  .wl-readout{ font-family:'JetBrains Mono', monospace; font-size:22px; }
+  .wl-readout span{ color:var(--gold); }
+  .wl-hint{ font-size:12px; color:var(--muted); }
+
+  .presets{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .presets button{
+    font-family:'Inter', sans-serif;
+    font-size:12px;
+    color:var(--muted);
+    background:var(--panel-alt);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:6px 14px;
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  .presets button:hover, .presets button:focus-visible{ border-color:var(--gold); color:var(--text); }
+
+  /* --- opponent valence chart (shared axis) --- */
+  .opp-legend{ display:flex; gap:22px; margin-bottom:14px; }
+  .opp-legend-item{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  .swatch-line{ width:16px; height:3px; border-radius:2px; display:inline-block; }
+  svg.opp-chart{ width:100%; height:auto; display:block; overflow:visible; }
+
+  /* --- live equation readouts --- */
+  .eq-block{ margin-top:16px; padding-top:14px; border-top:1px solid var(--line); }
+  .eq-line{ font-family:'JetBrains Mono', monospace; font-size:12px; line-height:1.9; color:var(--muted); margin:0; }
+  .eq-line b{ font-weight:600; }
+  .cell-eq{ margin:10px 0 0; font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted); }
+  .cell-eq b{ font-weight:600; }
+
+  /* --- receptive field cell widget --- */
+  .cell-row{ display:flex; gap:24px; justify-content:center; flex-wrap:wrap; }
+  .cell-block{ flex:1 1 200px; max-width:220px; text-align:center; }
+  .cell-title{ font-size:13px; font-weight:600; margin:0 0 10px; color:var(--text); }
+  svg.cell-svg{ width:100%; height:auto; display:block; }
+  .cell-note{ margin:22px auto 0; max-width:560px; font-size:13px; line-height:1.6; color:var(--muted); text-align:center; }
+  .cell-note em{ color:var(--text); font-style:normal; }
+
+  /* --- opponent gauges --- */
+  .gauges{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:560px){ .gauges{ grid-template-columns:1fr; } }
+  .gauge-title{ font-size:14px; font-weight:600; margin:0 0 3px; }
+  .gauge-formula{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--muted); margin:0 0 16px; }
+  .gauge-track{ position:relative; height:12px; border-radius:8px; background:var(--panel-alt); overflow:hidden; }
+  .gauge-mid{ position:absolute; left:50%; top:0; bottom:0; width:1px; background:rgba(255,255,255,0.25); }
+  .gauge-fill{ position:absolute; top:0; bottom:0; border-radius:8px; }
+  .gauge-caption{ margin-top:12px; font-size:13px; color:var(--text); min-height:20px; }
+  .gauge-caption .num{ font-family:'JetBrains Mono', monospace; color:var(--muted); }
+
+  /* --- result --- */
+  .result-wrap{ display:flex; align-items:center; gap:28px; }
+  @media (max-width:520px){ .result-wrap{ flex-direction:column; text-align:center; } }
+  .swatch{
+    width:118px; height:118px; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.15);
+    flex-shrink:0;
+    transition:background-color .12s linear;
+  }
+  .result-text{ font-size:15px; line-height:1.6; color:var(--muted); }
+  .result-text b{ color:var(--text); font-weight:600; }
+
+  footer{
+    margin-top:64px;
+    border-top:1px solid var(--line);
+    padding-top:24px;
+    font-size:13px;
+    line-height:1.7;
+    color:var(--muted);
+  }
+  footer b{ color:var(--text); font-weight:600; }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <header>
+    <p class="eyebrow">An instrument for opponent-process theory</p>
+    <h1>How your brain<br>sees <em>color</em></h1>
+    <p class="sub">Two chromatic mechanisms. Every hue you've ever seen is their balance.</p>
+  </header>
+
+  <div class="layout">
+
+  <section class="step step-picker">
+    <div class="step-label">01 — pick a wavelength</div>
+    <div class="panel">
+      <div class="spectrum-wrap spectrum-focus">
+        <svg id="specSvg" viewBox="0 0 640 64" preserveAspectRatio="none"></svg>
+        <input type="range" id="wlSlider" min="400" max="700" step="1" value="550" aria-label="Wavelength in nanometers">
+      </div>
+      <div class="wl-row">
+        <div class="wl-readout">&lambda; = <span id="wlVal">550</span> nm</div>
+        <div class="wl-hint">drag the bar, or use ←/→</div>
+      </div>
+      <div class="presets" id="presets"></div>
+    </div>
+  </section>
+
+  <section class="step step-chart">
+    <div class="step-label">02 — the opponent mechanisms respond</div>
+    <div class="panel">
+      <div class="opp-legend">
+        <div class="opp-legend-item"><span class="swatch-line" style="background:var(--red)"></span>Red&harr;Green</div>
+        <div class="opp-legend-item"><span class="swatch-line" style="background:var(--blue)"></span>Blue&harr;Yellow</div>
+      </div>
+      <svg class="opp-chart" id="oppChart" viewBox="0 0 640 210"></svg>
+      <div class="eq-block">
+        <p class="eq-line" id="rgEq"></p>
+        <p class="eq-line" id="byEq"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="step step-cells">
+    <div class="step-label">03 — one cell, center vs. surround</div>
+    <div class="panel">
+      <div class="cell-row">
+        <div class="cell-block">
+          <p class="cell-title">Red&harr;Green ganglion cell</p>
+          <svg class="cell-svg" id="rgCell" viewBox="0 0 200 200"></svg>
+          <p class="cell-eq" id="rgCellEq"></p>
+        </div>
+        <div class="cell-block">
+          <p class="cell-title">Blue&harr;Yellow ganglion cell</p>
+          <svg class="cell-svg" id="byCell" viewBox="0 0 200 200"></svg>
+          <p class="cell-eq" id="byCellEq"></p>
+        </div>
+      </div>
+      <p class="cell-note">Each retinal ganglion cell has a center and a ring-shaped surround wired to opposite signs. Light hitting the center excites it; the same light hitting the surround inhibits it &mdash; the cell reports the difference. That subtraction, repeated across the retina, <em>is</em> the opponent channel.</p>
+    </div>
+  </section>
+
+  <section class="step step-gauges">
+    <div class="step-label">04 — the brain subtracts</div>
+    <div class="panel">
+      <div class="gauges">
+        <div>
+          <p class="gauge-title">Red &harr; green</p>
+          <p class="gauge-formula" id="rgGaugeEq"></p>
+          <div class="gauge-track"><div class="gauge-mid"></div><div class="gauge-fill" id="rgFill"></div></div>
+          <p class="gauge-caption" id="rgCaption"></p>
+        </div>
+        <div>
+          <p class="gauge-title">Blue &harr; yellow</p>
+          <p class="gauge-formula" id="byGaugeEq"></p>
+          <div class="gauge-track"><div class="gauge-mid"></div><div class="gauge-fill" id="byFill"></div></div>
+          <p class="gauge-caption" id="byCaption"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step step-result">
+    <div class="step-label">05 — what you see</div>
+    <div class="panel">
+      <div class="result-wrap">
+        <div class="swatch" id="swatch"></div>
+        <p class="result-text" id="resultText"></p>
+      </div>
+    </div>
+  </section>
+
+  </div><!-- /layout -->
+
+  <footer>
+    <b>What's plotted:</b> these curves are modeled after the classic hue-cancellation experiments of Hurvich &amp; Jameson &mdash; not raw cone output, but the perceptual balance each opponent mechanism reports at every wavelength. The red&ndash;green mechanism reads <b>red</b> at both spectral extremes and <b>green</b> in the middle, crossing zero near 477&nbsp;nm and 580&nbsp;nm. The blue&ndash;yellow mechanism reads <b>blue</b> at short wavelengths and <b>yellow</b> at long ones, crossing near 505&nbsp;nm. Because each mechanism can only report one pole at a time, you can imagine reddish-yellow (orange) but never reddish-green &mdash; the two ends of one channel can't fire at once.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var W_MIN = 400, W_MAX = 700;
+
+  // --- Opponent chromatic-valence functions ---
+  // Difference-of-Gaussians fit to the shape and zero-crossings of the
+  // classic Hurvich & Jameson hue-cancellation curves (not raw cone math):
+  // R/G crosses zero near 477nm and 580nm; B/Y crosses near 505nm.
+  function G(wl,mu,s){ return Math.exp(-0.5*Math.pow((wl-mu)/s,2)); }
+  function RG(wl){ return 0.9*G(wl,445,30) - 1.2*G(wl,540,50) + 0.9*G(wl,595,58); }
+  function BY(wl){ return -1.6*G(wl,440,45) + 2.0*G(wl,605,60); }
+  var RG_NORM = 0.85, BY_NORM = 2.05; // approx peak magnitudes, for color mixing
+
+  function wavelengthToRGB(wl){
+    var r,g,b;
+    if(wl>=380 && wl<440){ r=-(wl-440)/(440-380); g=0; b=1; }
+    else if(wl>=440 && wl<490){ r=0; g=(wl-440)/(490-440); b=1; }
+    else if(wl>=490 && wl<510){ r=0; g=1; b=-(wl-510)/(510-490); }
+    else if(wl>=510 && wl<580){ r=(wl-510)/(580-510); g=1; b=0; }
+    else if(wl>=580 && wl<645){ r=1; g=-(wl-645)/(645-580); b=0; }
+    else if(wl>=645 && wl<=780){ r=1; g=0; b=0; }
+    else { r=0; g=0; b=0; }
+    var factor;
+    if(wl>=380 && wl<420) factor = 0.3 + 0.7*(wl-380)/(420-380);
+    else if(wl>=420 && wl<701) factor = 1.0;
+    else if(wl>=701 && wl<=780) factor = 0.3 + 0.7*(780-wl)/(780-700);
+    else factor = 0.0;
+    var gamma = 0.8;
+    function adj(c){ return c===0 ? 0 : Math.round(255 * Math.pow(c*factor, gamma)); }
+    return [adj(r), adj(g), adj(b)];
+  }
+
+  function opponentToColour(rg, by){
+    var rgS = Math.max(-1, Math.min(1, rg/RG_NORM));
+    var byS = Math.max(-1, Math.min(1, by/BY_NORM));
+    var rgb = [0.5, 0.5, 0.5];
+    if(rgS > 0){ rgb[0] += 0.5*rgS; } else { rgb[1] += 0.5*(-rgS); }
+    if(byS > 0){ rgb[2] += 0.5*byS; }
+    else { rgb[0] += 0.35*(-byS); rgb[1] += 0.35*(-byS); }
+    return rgb.map(function(v){ return Math.round(255*Math.max(0, Math.min(1, v))); });
+  }
+
+  // --- spectrum bar (step 01) ---
+  var specSvg = document.getElementById('specSvg');
+  var stops = [];
+  for(var wl = W_MIN; wl <= W_MAX; wl += 15){
+    var c = wavelengthToRGB(wl);
+    stops.push('<stop offset="'+ (100*(wl-W_MIN)/(W_MAX-W_MIN)) +'%" stop-color="rgb('+c[0]+','+c[1]+','+c[2]+')"/>');
+  }
+  specSvg.innerHTML =
+    '<defs><linearGradient id="specGrad" x1="0" y1="0" x2="1" y2="0">' + stops.join('') + '</linearGradient></defs>' +
+    '<rect x="0" y="0" width="640" height="64" rx="10" fill="url(#specGrad)"/>' +
+    '<rect id="specDim" x="0" y="0" width="640" height="64" rx="10" fill="black" opacity="0.28"/>' +
+    '<g id="handleGroup">' +
+      '<rect id="handleGlow" y="0" width="6" height="64" fill="var(--gold)" opacity="0.9"/>' +
+      '<circle id="handleDot" cy="32" r="7" fill="var(--gold)" stroke="var(--bg)" stroke-width="2"/>' +
+    '</g>';
+
+  // --- single shared-axis chart: both curves overlaid for direct comparison ---
+  function buildPath(fn, xPos, yPos){
+    var step = 2, pts = [];
+    for(var w=W_MIN; w<=W_MAX; w+=step) pts.push([w, fn(w)]);
+    if(pts[pts.length-1][0] !== W_MAX) pts.push([W_MAX, fn(W_MAX)]);
+    var d = '';
+    for(var i=0;i<pts.length;i++){
+      var x = xPos(pts[i][0]).toFixed(1), y = yPos(pts[i][1]).toFixed(1);
+      d += (i===0?'M':'L') + x + ' ' + y + ' ';
+    }
+    return d;
+  }
+
+  var oppChartEl = document.getElementById('oppChart');
+  var padL = 26, padR = 10, padT = 14, plotH = 130;
+  var cw = 640 - padL - padR;
+  var y0 = padT + plotH/2;
+  var DOMAIN = 2.3; // shared scale so both curves are directly comparable
+  function xPos(wl){ return padL + (wl-W_MIN)/(W_MAX-W_MIN)*cw; }
+  function yPos(v){ return y0 - (v/DOMAIN)*(plotH/2); }
+
+  var gridLines = '';
+  [400,500,600,700].forEach(function(gwl){
+    gridLines += '<line x1="'+xPos(gwl).toFixed(1)+'" y1="'+padT+'" x2="'+xPos(gwl).toFixed(1)+'" y2="'+(padT+plotH)+'" stroke="rgba(255,255,255,0.06)"/>' +
+      '<text x="'+xPos(gwl).toFixed(1)+'" y="'+(padT+plotH+16)+'" fill="var(--muted)" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">'+gwl+'</text>';
+  });
+
+  var stripY = padT + plotH + 24, stripH = 9;
+  var specStops = [];
+  for(var sw = W_MIN; sw <= W_MAX; sw += 15){
+    var sc = wavelengthToRGB(sw);
+    specStops.push('<stop offset="'+ (100*(sw-W_MIN)/(W_MAX-W_MIN)) +'%" stop-color="rgb('+sc[0]+','+sc[1]+','+sc[2]+')"/>');
+  }
+
+  var crossings = [
+    {wl:477, label:'477'}, {wl:580, label:'580'}, {wl:507, label:'505'}
+  ];
+  var crossingMarks = '';
+  crossings.forEach(function(c){
+    var cx = xPos(c.wl).toFixed(1);
+    crossingMarks +=
+      '<polygon points="'+(cx-4)+','+(stripY-6)+' '+(parseFloat(cx)+4)+','+(stripY-6)+' '+cx+','+(stripY-1)+'" fill="var(--text)" opacity="0.85"/>' +
+      '<text x="'+cx+'" y="'+(stripY+stripH+13)+'" fill="var(--muted)" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="middle">'+c.label+'</text>';
+  });
+
+  var poleLabels = [
+    {wl:440, v:0.78, letter:'R', color:'var(--red)'},
+    {wl:525, v:-0.72, letter:'G', color:'var(--green)'},
+    {wl:632, v:0.55, letter:'R', color:'var(--red)'},
+    {wl:437, v:-1.72, letter:'B', color:'var(--blue)'},
+    {wl:605, v:2.15, letter:'Y', color:'var(--yellow)'}
+  ].map(function(p){
+    return '<text x="'+xPos(p.wl).toFixed(1)+'" y="'+yPos(p.v).toFixed(1)+'" fill="'+p.color+'" font-size="14" font-weight="600" font-family=\'Fraunces, serif\' text-anchor="middle">'+p.letter+'</text>';
+  }).join('');
+
+  oppChartEl.innerHTML =
+    '<defs><linearGradient id="oppGrad" x1="0" y1="0" x2="1" y2="0">' + specStops.join('') + '</linearGradient></defs>' +
+    gridLines +
+    '<line x1="'+padL+'" y1="'+y0+'" x2="'+(padL+cw)+'" y2="'+y0+'" stroke="rgba(255,255,255,0.25)" stroke-dasharray="3,3"/>' +
+    '<path d="'+buildPath(RG, xPos, yPos)+'" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linejoin="round"/>' +
+    '<path d="'+buildPath(BY, xPos, yPos)+'" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linejoin="round"/>' +
+    poleLabels +
+    '<rect x="'+padL+'" y="'+stripY+'" width="'+cw+'" height="'+stripH+'" rx="3" fill="url(#oppGrad)"/>' +
+    crossingMarks +
+    '<line id="oppCursor" x1="0" y1="'+padT+'" x2="0" y2="'+(padT+plotH)+'" stroke="var(--gold)" stroke-width="1.5" stroke-dasharray="3,3"/>' +
+    '<circle id="rgDot" r="5" stroke="var(--bg)" stroke-width="1.5"/>' +
+    '<circle id="byDot" r="5" stroke="var(--bg)" stroke-width="1.5"/>';
+
+  var oppCursor = document.getElementById('oppCursor');
+  var rgDot = document.getElementById('rgDot'), byDot = document.getElementById('byDot');
+
+  var rgCellEl = document.getElementById('rgCell');
+  var byCellEl = document.getElementById('byCell');
+
+  // Draws a classic center-surround ganglion-cell diagram: two concentric
+  // rings, a signed cone label in the center, the opposite sign in the
+  // surround, and a firing-rate-style number — same visual language as a
+  // textbook L+/M- receptive-field figure, but live-updated from the
+  // current wavelength's opponent signal.
+  function renderCell(svgEl, centerLabel, centerColor, surroundLabel, surroundColor, value){
+    svgEl.innerHTML =
+      '<circle cx="100" cy="100" r="85" fill="none" stroke="var(--gold)" stroke-width="2.5"/>' +
+      '<circle cx="100" cy="100" r="40" fill="none" stroke="var(--gold)" stroke-width="2.5"/>' +
+      '<text x="100" y="93" text-anchor="middle" font-family="Fraunces, serif" font-weight="600" font-size="21" fill="'+centerColor+'">'+centerLabel+'</text>' +
+      '<text x="100" y="122" text-anchor="middle" font-family=\'JetBrains Mono, monospace\' font-size="15" fill="var(--muted)">'+value+'</text>' +
+      '<text x="153" y="68" text-anchor="middle" font-family="Fraunces, serif" font-weight="600" font-size="17" fill="'+surroundColor+'">'+surroundLabel+'</text>';
+  }
+
+  var slider = document.getElementById('wlSlider');
+  var wlVal = document.getElementById('wlVal');
+  var rgFill = document.getElementById('rgFill'), byFill = document.getElementById('byFill');
+  var rgCaption = document.getElementById('rgCaption'), byCaption = document.getElementById('byCaption');
+  var rgEq = document.getElementById('rgEq'), byEq = document.getElementById('byEq');
+  var rgGaugeEq = document.getElementById('rgGaugeEq'), byGaugeEq = document.getElementById('byGaugeEq');
+  var rgCellEq = document.getElementById('rgCellEq'), byCellEq = document.getElementById('byCellEq');
+  var swatch = document.getElementById('swatch');
+  var resultText = document.getElementById('resultText');
+
+  function fmt(n){ return (n>=0?'+':'') + n.toFixed(2); }
+
+  function xPosSpec(wl){ return (wl-W_MIN)/(W_MAX-W_MIN)*640; }
+
+  function update(wl){
+    wl = Math.round(wl);
+    slider.value = wl;
+    wlVal.textContent = wl;
+
+    var hx = xPosSpec(wl);
+    document.getElementById('handleGlow').setAttribute('x', hx-3);
+    document.getElementById('handleDot').setAttribute('cx', hx);
+
+    var rg = RG(wl), by = BY(wl);
+
+    var cx = xPos(wl);
+    oppCursor.setAttribute('x1', cx); oppCursor.setAttribute('x2', cx);
+    rgDot.setAttribute('cx', cx); rgDot.setAttribute('cy', yPos(rg));
+    rgDot.setAttribute('fill', rg>=0 ? 'var(--red)' : 'var(--green)');
+    byDot.setAttribute('cx', cx); byDot.setAttribute('cy', yPos(by));
+    byDot.setAttribute('fill', by>=0 ? 'var(--yellow)' : 'var(--blue)');
+
+    var rgClamped = Math.max(-1, Math.min(1, rg/RG_NORM));
+    var byClamped = Math.max(-1, Math.min(1, by/BY_NORM));
+    if(rgClamped >= 0){
+      rgFill.style.left = '50%'; rgFill.style.width = (rgClamped*50)+'%';
+      rgFill.style.background = 'var(--red)';
+    } else {
+      rgFill.style.left = (50+rgClamped*50)+'%'; rgFill.style.width = (-rgClamped*50)+'%';
+      rgFill.style.background = 'var(--green)';
+    }
+    if(byClamped >= 0){
+      byFill.style.left = '50%'; byFill.style.width = (byClamped*50)+'%';
+      byFill.style.background = 'var(--yellow)';
+    } else {
+      byFill.style.left = (50+byClamped*50)+'%'; byFill.style.width = (-byClamped*50)+'%';
+      byFill.style.background = 'var(--blue)';
+    }
+
+    var rgSign = rg >= 0 ? 'var(--red)' : 'var(--green)';
+    var bySign = by >= 0 ? 'var(--yellow)' : 'var(--blue)';
+
+    rgEq.innerHTML = 'R&minus;G(&lambda;) = 0.9&middot;G(&lambda;,445,30) &minus; 1.2&middot;G(&lambda;,540,50) + 0.9&middot;G(&lambda;,595,58) = <b style="color:'+rgSign+'">'+fmt(rg)+'</b>';
+    byEq.innerHTML = 'B&minus;Y(&lambda;) = &minus;1.6&middot;G(&lambda;,440,45) + 2.0&middot;G(&lambda;,605,60) = <b style="color:'+bySign+'">'+fmt(by)+'</b>';
+    rgGaugeEq.innerHTML = 'R&minus;G(&lambda;) = <b style="color:'+rgSign+'">'+fmt(rg)+'</b>';
+    byGaugeEq.innerHTML = 'B&minus;Y(&lambda;) = <b style="color:'+bySign+'">'+fmt(by)+'</b>';
+
+    var rgFireVal = Math.round(Math.abs(rgClamped)*20);
+    if(rg >= 0){
+      renderCell(rgCellEl, 'L+', 'var(--red)', 'M\u2212', 'var(--green)', rgFireVal);
+      rgCellEq.innerHTML = 'L(&lambda;) &minus; M(&lambda;) = <b style="color:var(--red)">'+fmt(Math.abs(rg))+'</b>';
+    } else {
+      renderCell(rgCellEl, 'M+', 'var(--green)', 'L\u2212', 'var(--red)', rgFireVal);
+      rgCellEq.innerHTML = 'M(&lambda;) &minus; L(&lambda;) = <b style="color:var(--green)">'+fmt(Math.abs(rg))+'</b>';
+    }
+    var byFireVal = Math.round(Math.abs(byClamped)*20);
+    if(by >= 0){
+      renderCell(byCellEl, 'Y+', 'var(--yellow)', 'S\u2212', 'var(--blue)', byFireVal);
+      byCellEq.innerHTML = 'Y(&lambda;) &minus; S(&lambda;) = <b style="color:var(--yellow)">'+fmt(Math.abs(by))+'</b>';
+    } else {
+      renderCell(byCellEl, 'S+', 'var(--blue)', 'Y\u2212', 'var(--yellow)', byFireVal);
+      byCellEq.innerHTML = 'S(&lambda;) &minus; Y(&lambda;) = <b style="color:var(--blue)">'+fmt(Math.abs(by))+'</b>';
+    }
+
+    rgCaption.innerHTML = Math.abs(rg) < 0.02
+      ? 'Balanced &mdash; almost no red/green signal <span class="num">('+fmt(rg)+')</span>'
+      : (rg > 0
+          ? '<b style="color:var(--red)">Red mechanism wins</b> <span class="num">('+fmt(rg)+')</span>'
+          : '<b style="color:var(--green)">Green mechanism wins</b> <span class="num">('+fmt(rg)+')</span>');
+
+    byCaption.innerHTML = Math.abs(by) < 0.02
+      ? 'Balanced &mdash; almost no blue/yellow signal <span class="num">('+fmt(by)+')</span>'
+      : (by > 0
+          ? '<b style="color:var(--yellow)">Yellow mechanism wins</b> <span class="num">('+fmt(by)+')</span>'
+          : '<b style="color:var(--blue)">Blue mechanism wins</b> <span class="num">('+fmt(by)+')</span>');
+
+    var rgb = opponentToColour(rg, by);
+    var rgbStr = 'rgb('+rgb[0]+','+rgb[1]+','+rgb[2]+')';
+    swatch.style.background = rgbStr;
+    swatch.style.boxShadow = '0 0 32px -6px ' + rgbStr;
+
+    var rgWord = rg > 0.02 ? 'red' : (rg < -0.02 ? 'green' : 'neutral');
+    var byWord = by > 0.02 ? 'yellow' : (by < -0.02 ? 'blue' : 'neutral');
+    resultText.innerHTML = 'At <b>'+wl+' nm</b>, the red&ndash;green mechanism leans <b>'+rgWord+'</b> and the blue&ndash;yellow mechanism leans <b>'+byWord+'</b>. Combine the two and this is the color your brain reconstructs &mdash; the balance point of two opponent mechanisms, not a direct readout of wavelength.';
+  }
+
+  slider.addEventListener('input', function(){ update(this.value); });
+
+  var presets = [[460,'Blue'],[490,'Cyan'],[520,'Green'],[570,'Yellow'],[600,'Orange'],[650,'Red']];
+  var presetWrap = document.getElementById('presets');
+  presets.forEach(function(p){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = p[1] + ' \u00b7 ' + p[0] + 'nm';
+    btn.addEventListener('click', function(){ update(p[0]); });
+    presetWrap.appendChild(btn);
+  });
+
+  update(550);
+})();
+</script>
+</body>
+</html>

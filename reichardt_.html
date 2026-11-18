@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hassenstein–Reichardt Correlator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #030405;
+    --panel: #0B0D11;
+    --panel-2: #12151B;
+    --line: #5A6273;
+    --line-soft: #2A2F3A;
+    --receptor-off: #171A21;
+    --receptor-off-line: #545C6E;
+    --receptor-on: #FFC266;
+    --receptor-on-glow: rgba(255,194,102,0.65);
+    --delay: #5FE0F2;
+    --delay-dim: #123338;
+    --lr: #FF7A61;
+    --lr-dim: #3A211C;
+    --rl: #A6A9FF;
+    --rl-dim: #23233F;
+    --net: #6DFCB8;
+    --net-dim: #123328;
+    --text: #F3F4F7;
+    --text-muted: #9AA2B2;
+    --text-faint: #656D7E;
+  }
+  :root{ color-scheme: dark; }
+
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 28px 16px 60px;
+    min-height: 100vh;
+  }
+  .wrap{ max-width: 1000px; margin: 0 auto; }
+
+  header{ margin-bottom: 22px; }
+  .kicker{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--delay);
+    letter-spacing: 0.02em;
+    margin-bottom: 10px;
+  }
+  h1{
+    font-size: clamp(26px, 4.4vw, 34px);
+    line-height: 1.15;
+    margin: 0 0 12px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    max-width: 660px;
+  }
+  .lede{
+    color: var(--text-muted);
+    font-size: 15.5px;
+    line-height: 1.6;
+    max-width: 640px;
+  }
+  .lede b{ color: var(--text); font-weight: 600; }
+
+  /* --- controls --- */
+  .controls{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: center;
+    margin: 26px 0 20px;
+    padding: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+  }
+  .ctrl-row{
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+    width: 100%;
+  }
+  .ctrl-row + .ctrl-row{
+    padding-top: 10px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .ctrl-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    min-width: 78px;
+  }
+  .seg{
+    display: inline-flex;
+    background: var(--panel-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .seg button{
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+  }
+  .seg button:hover{ color: var(--text); }
+  .seg button.active{ background: var(--line-soft); color: var(--text); }
+  .seg button.active[data-scenario="toofast"]{ box-shadow: inset 0 0 0 1px var(--lr); color: var(--lr); background: var(--lr-dim);}
+  .seg button.active[data-scenario="flash"]{ box-shadow: inset 0 0 0 1px var(--net); color: var(--net); background: var(--net-dim);}
+  .seg button.active[data-scenario="normal"]{ box-shadow: inset 0 0 0 1px var(--delay); color: var(--delay); background: var(--delay-dim);}
+  .seg button.active[data-tau]{ box-shadow: inset 0 0 0 1px var(--delay); color: var(--delay); background: var(--delay-dim);}
+
+  .spacer{ flex: 1 1 auto; }
+
+  .iconbtn{
+    appearance: none;
+    border: 1px solid var(--line-soft);
+    background: var(--panel-2);
+    color: var(--text);
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex; align-items:center; justify-content:center;
+    font-size: 14px;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .iconbtn:hover{ border-color: var(--text-faint); }
+  .iconbtn.playing{ border-color: var(--net); color: var(--net); }
+
+  .speedwrap{
+    display:flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  input[type=range]{
+    -webkit-appearance:none; appearance:none;
+    width: 90px; height: 3px;
+    background: var(--line-soft);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none;
+    width:13px; height:13px; border-radius:50%;
+    background: var(--text); cursor:pointer;
+    border: 2px solid var(--bg);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:13px; height:13px; border-radius:50%;
+    background: var(--text); cursor:pointer; border: 2px solid var(--bg);
+  }
+
+  .dirbtn{
+    appearance:none;
+    border:1px solid var(--line-soft);
+    background: var(--panel-2);
+    color: var(--text-muted);
+    padding: 7px 11px;
+    border-radius: 8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .dirbtn:hover{ color: var(--text); border-color: var(--text-faint); }
+  .dirbtn:disabled{ opacity: 0.35; cursor: not-allowed; }
+  .dirbtn.active{ box-shadow: inset 0 0 0 1px var(--net); color: var(--net); background: var(--net-dim); border-color: var(--net); }
+
+  /* --- diagram panel --- */
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line-soft);
+    border-radius: 10px;
+    padding: 18px 16px 14px;
+    margin-bottom: 16px;
+  }
+  .panel-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+  .diagram-scroll{
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .diagram-scroll svg{
+    display:block;
+    min-width: 680px;
+    width: 100%;
+    height: auto;
+  }
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap: 14px 20px;
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line-soft);
+  }
+  .legend-item{
+    display:flex; align-items:center; gap:7px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .swatch{ width:10px; height:10px; border-radius:2px; flex:none; }
+  .swatch.dot{ border-radius:50%; }
+
+  /* --- scope panel --- */
+  .scope-head{
+    display:flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+  .readout{
+    display:flex; gap: 16px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+  }
+  .readout span{ color: var(--text-faint); }
+  .readout b{ color: var(--text); font-weight: 600; margin-left: 4px; }
+  .scope-scroll svg{ display:block; width:100%; height:auto; }
+
+  /* --- explanation --- */
+  .insight{
+    background: var(--panel);
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--delay);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--text);
+    transition: border-left-color 0.2s ease;
+  }
+  .insight.mode-toofast{ border-left-color: var(--lr); }
+  .insight.mode-flash{ border-left-color: var(--net); }
+  .insight b{ font-weight: 600; }
+  .insight .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-faint);
+    display:block;
+    margin-bottom: 6px;
+  }
+
+  footer{
+    margin-top: 22px;
+    font-size: 12.5px;
+    color: var(--text-faint);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 640px){
+    .controls{ padding: 12px; }
+    .readout{ gap: 10px; flex-wrap: wrap; }
+    .ctrl-label{ min-width: unset; width: 100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    * { transition-duration: 0.001ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="kicker">ELEMENTARY MOTION DETECTOR · REICHARDT CORRELATOR</div>
+    <h1>Why a fly's eye can miss motion — and ignore a flickering light</h1>
+    <p class="lede">
+      Eight photoreceptors feed a row of Hassenstein–Reichardt detectors, the wiring
+      thought to underlie motion vision in insects. Each receptor sends its signal two
+      ways: through a delay (D) to the multiplier on its right, and <b>straight, undelayed</b>,
+      to the multiplier on its left. Each multiplier (X) fires only when the delayed signal
+      and its neighbour's live signal arrive together, and M adds them up.
+      <b>Watch the signal wait in D</b>, then try breaking the circuit
+      two ways, or mistune the delay itself.
+    </p>
+  </header>
+
+  <div class="controls">
+    <div class="ctrl-row">
+      <span class="ctrl-label">scenario</span>
+      <div class="seg" id="scenarioSeg">
+        <button data-scenario="normal" class="active">Normal motion</button>
+        <button data-scenario="toofast">Too‑fast hack</button>
+        <button data-scenario="flash">Flash hack</button>
+      </div>
+      <button class="dirbtn" id="dirBtn" title="Toggle direction">L → R</button>
+      <div class="spacer"></div>
+      <button class="dirbtn" id="slowMoBtn" title="Slow everything down so you can see each collision">🐢 Slow‑mo</button>
+      <div class="speedwrap">
+        <span>playback</span>
+        <input type="range" id="speedSlider" min="1" max="10" value="4">
+      </div>
+      <button class="iconbtn" id="stepBtn" title="Step one tick">⏭</button>
+      <button class="iconbtn playing" id="playBtn" title="Play / pause">⏸</button>
+      <button class="iconbtn" id="resetBtn" title="Reset">↺</button>
+    </div>
+    <div class="ctrl-row">
+      <span class="ctrl-label">circuit tuning</span>
+      <div class="seg" id="tauSeg">
+        <button data-tau="2">Slow · τ=2</button>
+        <button data-tau="1" class="active">Matched · τ=1</button>
+        <button data-tau="0">Fast · τ=0</button>
+      </div>
+      <span style="font-size:12.5px;color:var(--text-faint);">
+        sets how many ticks the delay line holds a signal before it's released to the multiplier
+      </span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">RETINA + CORRELATOR NETWORK</div>
+    <div class="diagram-scroll">
+      <svg id="diagramSvg" viewBox="0 0 700 380" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="swatch" style="background:var(--receptor-on)"></span>Receptor firing now</div>
+      <div class="legend-item"><span class="swatch dot" style="background:var(--delay)"></span>Delayed signal — ring fills solid while paused in D</div>
+      <div class="legend-item"><span class="swatch dot" style="background:var(--text)"></span>Live signal — skips D, goes straight to the neighbouring X</div>
+      <div class="legend-item"><span class="swatch" style="background:var(--lr)"></span>X fired — delayed and live signals coincided</div>
+      <div class="legend-item"><span class="swatch" style="background:var(--net)"></span>M — sum of all X outputs</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="scope-head">
+      <div class="panel-title" style="margin-bottom:0;">OUTPUT OVER TIME</div>
+      <div class="readout">
+        <div><span>t</span><b id="roT">0</b></div>
+        <div><span>M output</span><b id="roNet" style="color:var(--net)">0.0</b></div>
+      </div>
+    </div>
+    <div class="scope-scroll">
+      <svg id="scopeSvg" viewBox="0 0 700 140" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <div class="insight mode-normal" id="insightBox">
+    <span class="tag" id="insightTag">NORMAL MOTION</span>
+    <span id="insightText">Press play — the object crosses the array at one receptor per tick.</span>
+  </div>
+
+  <footer>
+    Model (matches the reference diagram): receptor <i>i</i> feeds its own delay node D<i>ᵢ</i>,
+    and D<i>ᵢ</i> connects to multiplier X<i>ᵢ</i> on its right. Receptor <i>i</i>+1 connects to
+    that same X<i>ᵢ</i> directly, with no delay. X multiplies its two inputs, and M sums every X.
+    This single arm prefers left‑to‑right motion; a full Hassenstein–Reichardt detector pairs it
+    with a mirror‑image arm and subtracts the two (the opponent stage), which also cancels
+    flicker at every tuning. Circuit tuning sets τ, the number of ticks a receptor's signal is
+    held in D before release — biologically, the detector's preferred temporal frequency.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  const NUM_R = 8;
+  const NUM_D = NUM_R - 1;   // number of X multipliers (one per adjacent receptor pair)
+  const HIST = 40; // scope window
+
+  // ---- state ----
+  let scenario = 'normal';
+  let direction = 'LR';
+  let tau = 1;
+  let playing = true;
+  let tick = 0;
+  let historyFrames = [zeros(), zeros(), zeros()]; // index0 = current
+  let scopeNet = [];
+  let timer = null;
+  let tickIntervalMs = 480;
+  let slowMo = false;
+  const SLOWMO_FACTOR = 7;
+  let pulses = []; // {pts:[{x,y}], segMs:[..], wireIds:[..], start, color, r}
+  let activeWireGlow = new Map(); // wireId -> glow color, recomputed every animation frame
+  let delayCoreEls = [], delayRingEls = [];
+  let holdFrom = new Array(NUM_R).fill(-1);
+  let holdUntil = new Array(NUM_R).fill(-1);
+  let prevXArr = new Array(NUM_D).fill(0);
+
+  // X's visual firing schedule: the two inputs physically finish travelling and meet at X
+  // at xFireFrom[i] (real time, not tick time). X then holds/dwells until xFireUntil[i],
+  // at which point — and only then — the pulse toward M is allowed to depart.
+  let xFireFrom = new Array(NUM_D).fill(-1);
+  let xFireUntil = new Array(NUM_D).fill(-1);
+  let xPulseSpawnedFor = new Array(NUM_D).fill(-1);
+  let pendingMArrivals = []; // real timestamps at which a travelling X->M pulse reaches M
+  let mLitUntil = -1;
+
+  function effectiveTickMs(){ return tickIntervalMs * (slowMo ? SLOWMO_FACTOR : 1); }
+
+  function zeros(){ return new Array(NUM_R).fill(0); }
+
+  // Duration of a signal's non-delay travel (receptor->D, D->X release hop, or receptor->X live hop).
+  function tripMsNow(){
+    const etm = effectiveTickMs();
+    return slowMo ? Math.max(500, etm * 0.35) : Math.min(220, Math.max(120, etm * 0.35));
+  }
+  // Duration of the X->M hop.
+  function collTripMsNow(){
+    const etm = effectiveTickMs();
+    return slowMo ? Math.max(450, etm * 0.55) : Math.min(260, Math.max(140, etm * 0.55));
+  }
+  // Brief pause at X — lit, holding the coincidence — before the signal is released toward M.
+  function dwellMsNow(){
+    return tripMsNow() * 0.3;
+  }
+
+  function cycleLen(){
+    if(scenario === 'flash') return 6;
+    if(scenario === 'toofast') return 9;
+    return 13;
+  }
+
+  function computeFrame(t){
+    const f = zeros();
+    if(scenario === 'flash'){
+      if(t % cycleLen() === 2){ f.fill(1); }
+      return f;
+    }
+    const step = (scenario === 'toofast') ? 2 : 1;
+    const localT = t % cycleLen();
+    let pos;
+    if(direction === 'LR' || scenario === 'toofast'){
+      pos = (localT - 2) * step;
+    } else {
+      pos = (NUM_R - 1) - (localT - 2) * step;
+    }
+    if(pos >= 0 && pos < NUM_R){ f[pos] = 1; }
+    return f;
+  }
+
+  // ---- geometry (depends on tau) ----
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const diagramSvg = document.getElementById('diagramSvg');
+  const marginX = 46;
+  const spacing = (700 - marginX*2) / (NUM_R - 1);
+  const yReceptor = 46;
+  const yMult = 232, ySum = 340;   // X sits close under the D row; the long X->M run is where the space goes
+  const LIVE_START_DX = 8;         // live wire leaves the receptor's lower-left edge, so a straight
+                                   // line still clears the D node directly below the receptor
+
+  function rX(i){ return marginX + i*spacing; }
+  function midX(i){ return (rX(i) + rX(i+1)) / 2; }
+  function delayNodeY(){ return yReceptor + 16 + 38 + tau*38; }
+  function receptorPos(i){ return {x:rX(i), y:yReceptor+16}; }
+  function delayPos(i){ return {x:rX(i), y:delayNodeY()}; }
+  function multPos(i){ return {x:midX(i), y:yMult}; }
+
+  // Where each of X(i)'s two input wires lands on its top edge.
+  // Left input = delayed signal from D(i); right input = live signal from receptor(i+1).
+  function xInDelayed(i){ return {x: midX(i) - 5, y: yMult - 11}; }
+  function xInLive(i){    return {x: midX(i) + 5, y: yMult - 11}; }
+  // Live wire from receptor(j) to X(j-1): one straight segment, no bends.
+  function liveStart(j){ return {x: rX(j) - LIVE_START_DX, y: yReceptor + 13}; }
+  // X(i) -> M collector endpoint on M's top edge (mirrors the fan geometry used to draw the wire).
+  function collectorTarget(i){
+    const target = (NUM_D>1) ? (350-19) + (i/(NUM_D-1))*38 : 350;
+    return {x: target, y: ySum-12};
+  }
+
+  function el(tag, attrs){
+    const e = document.createElementNS(svgNS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  let pulseLayer = null;
+
+  function buildStaticDiagram(){
+    diagramSvg.innerHTML = '';
+    const dY = delayNodeY();
+    const wires = el('g', {id:'wires'});
+    const wireStyle = {stroke:'var(--line)', 'stroke-width':1.6, opacity:0.65, fill:'none', 'stroke-linejoin':'round'};
+
+    // receptor(i) -> D(i): straight down, every receptor
+    for(let i=0;i<NUM_R;i++){
+      wires.appendChild(el('line', Object.assign({
+        id:'wRD'+i, x1: rX(i), y1: yReceptor+16, x2: rX(i), y2: dY-9
+      }, wireStyle)));
+    }
+
+    for(let i=0;i<NUM_D;i++){
+      const mp = multPos(i);
+      const inD = xInDelayed(i), inL = xInLive(i);
+
+      // DELAYED input to X(i): D(i) -> X(i), down and to the right
+      wires.appendChild(el('line', Object.assign({
+        id:'wDel'+i, x1:rX(i), y1:dY+9, x2:inD.x, y2:inD.y
+      }, wireStyle)));
+
+      // LIVE input to X(i): receptor(i+1) -> X(i), bypassing D(i+1) entirely
+      const ls = liveStart(i+1);
+      wires.appendChild(el('line', Object.assign({
+        id:'wLive'+i, x1:ls.x, y1:ls.y, x2:inL.x, y2:inL.y
+      }, wireStyle)));
+
+      // X(i) -> M, fanned into M's top edge
+      const ct = collectorTarget(i);
+      wires.appendChild(el('line', Object.assign({
+        id:'coll'+i, x1:mp.x, y1:mp.y+11, x2:ct.x, y2:ct.y
+      }, wireStyle)));
+    }
+    diagramSvg.appendChild(wires);
+
+    const receptors = el('g', {id:'receptors'});
+    for(let i=0;i<NUM_R;i++){
+      const g = el('g', {id:'recep'+i});
+      g.appendChild(el('rect', {x:rX(i)-13, y:yReceptor-16, width:26, height:32, rx:13,
+        fill:'var(--receptor-off)', stroke:'var(--receptor-off-line)', 'stroke-width':1.2, class:'recbox'}));
+      receptors.appendChild(g);
+    }
+    diagramSvg.appendChild(receptors);
+    diagramSvg.appendChild(mkText(marginX, yReceptor-26, 'receptors', 'var(--text-faint)', 10));
+
+    const delays = el('g', {id:'delays'});
+    delayCoreEls = []; delayRingEls = [];
+    const ringR = 15.5, circumference = 2*Math.PI*ringR;
+    for(let i=0;i<NUM_R;i++){
+      const g = el('g', {id:'delay'+i});
+      const ring = el('circle', {cx:rX(i), cy:dY, r:ringR, fill:'none', stroke:'var(--delay)',
+        'stroke-width':2.4, 'stroke-linecap':'round',
+        'stroke-dasharray': circumference.toFixed(1), 'stroke-dashoffset': circumference.toFixed(1),
+        opacity:0, transform:`rotate(-90 ${rX(i)} ${dY})`});
+      g.appendChild(ring);
+      const core = el('circle', {cx:rX(i), cy:dY, r:9, fill:'var(--delay-dim)', stroke:'var(--delay)', 'stroke-width':1.3, class:'core'});
+      g.appendChild(core);
+      const t = el('text', {x:rX(i), y:dY+3.5, 'text-anchor':'middle', fill:'var(--delay)',
+        'font-family':'IBM Plex Mono, monospace', 'font-size':9, 'font-weight':600});
+      t.textContent = 'D';
+      g.appendChild(t);
+      delays.appendChild(g);
+      delayCoreEls[i] = core;
+      delayRingEls[i] = ring;
+    }
+    diagramSvg.appendChild(delays);
+    diagramSvg.appendChild(mkText(marginX, dY+30, tau===0 ? 'τ=0 (no delay)' : `τ=${tau} tick${tau>1?'s':''} — ring fills while a signal is held`, 'var(--delay)', 10));
+
+    const multNodes = el('g', {id:'multNodes'});
+    for(let i=0;i<NUM_D;i++){
+      const mp = multPos(i);
+      const g = el('g', {id:'mult'+i});
+      g.appendChild(el('rect', {x:mp.x-11, y:mp.y-11, width:22, height:22, rx:3,
+        fill:'var(--panel-2)', stroke:'var(--line)', 'stroke-width':1.3, class:'mrect'}));
+      const xt = el('text', {x:mp.x, y:mp.y+4, 'text-anchor':'middle', fill:'var(--text)',
+        'font-family':'IBM Plex Mono, monospace', 'font-size':13, 'font-weight':700, class:'mglyph'});
+      xt.textContent = '×';
+      g.appendChild(xt);
+      multNodes.appendChild(g);
+    }
+    diagramSvg.appendChild(multNodes);
+    diagramSvg.appendChild(mkText(692, yMult+38, 'X = delayed × live', 'var(--text-faint)', 10, 'end'));
+
+    const sumG = el('g', {id:'sumNode'});
+    sumG.appendChild(el('polygon', {points:`${350-20},${ySum-12} ${350+20},${ySum-12} ${350},${ySum+16}`,
+      fill:'var(--net-dim)', stroke:'var(--net)', 'stroke-width':1.5}));
+    const st = el('text', {x:350, y:ySum+1, 'text-anchor':'middle', fill:'var(--net)',
+      'font-family':'IBM Plex Mono, monospace','font-size':14,'font-weight':700, class:'mglyphM'});
+    st.textContent = 'M';
+    sumG.appendChild(st);
+    diagramSvg.appendChild(sumG);
+    diagramSvg.appendChild(mkText(350, ySum+36, 'M — sum of all X outputs = motion signal', 'var(--net)', 10.5, 'middle'));
+
+    pulseLayer = el('g', {id:'pulseLayer'});
+    diagramSvg.appendChild(pulseLayer);
+  }
+
+  function mkText(x,y,str,fill,size,anchor){
+    const t = el('text', {x:x, y:y, fill:fill, 'font-family':'IBM Plex Mono, monospace', 'font-size':size,
+      stroke:'var(--panel)', 'stroke-width':3, 'paint-order':'stroke'});
+    if(anchor) t.setAttribute('text-anchor', anchor);
+    t.textContent = str;
+    return t;
+  }
+
+  // Receptor + D-node truth-state styling: these track the logical tick directly (a receptor's
+  // firing and D's held/released state are exactly what they are at each tick).
+  function renderTruthState(delayed, cur){
+    for(let i=0;i<NUM_R;i++){
+      const box = diagramSvg.querySelector('#recep'+i+' .recbox');
+      const on = cur[i] > 0;
+      box.setAttribute('fill', on ? 'var(--receptor-on)' : 'var(--receptor-off)');
+      box.setAttribute('stroke', on ? 'var(--receptor-on)' : 'var(--receptor-off-line)');
+      box.style.filter = on ? 'drop-shadow(0 0 7px var(--receptor-on-glow))' : 'none';
+    }
+    for(let i=0;i<NUM_R;i++){
+      const c = diagramSvg.querySelector('#delay'+i+' circle.core');
+      // the last D has no output wire in the reference diagram, so it never releases to an X
+      const on = i < NUM_D && delayed[i] > 0;
+      c.setAttribute('fill', on ? 'var(--delay)' : 'var(--delay-dim)');
+      c.style.filter = on ? 'drop-shadow(0 0 6px var(--delay))' : 'none';
+    }
+  }
+
+  // Everything downstream of a receptor firing — the wires, X boxes, and M — is driven off
+  // real elapsed time (nowMs) rather than the tick, so it only lights up once a pulse has
+  // actually, visually arrived there.
+  function renderLiveStyling(nowMs){
+    function styleWire(id, glowColor){
+      const w = diagramSvg.querySelector('#'+id);
+      if(!w) return;
+      if(glowColor){
+        w.setAttribute('stroke', glowColor);
+        w.setAttribute('opacity', '1');
+        w.setAttribute('stroke-width', '2.4');
+        w.style.filter = 'drop-shadow(0 0 4px ' + glowColor + ')';
+      } else {
+        w.setAttribute('stroke', 'var(--line)');
+        w.setAttribute('opacity', '0.65');
+        w.setAttribute('stroke-width', '1.6');
+        w.style.filter = 'none';
+      }
+    }
+
+    for(let i=0;i<NUM_R;i++){ styleWire('wRD'+i, activeWireGlow.get('wRD'+i)); }
+
+    for(let i=0;i<NUM_D;i++){
+      styleWire('wDel'+i, activeWireGlow.get('wDel'+i));
+      styleWire('wLive'+i, activeWireGlow.get('wLive'+i));
+      styleWire('coll'+i, activeWireGlow.get('coll'+i));
+
+      // X lights only for the dwell window between the two inputs visually meeting and the
+      // signal being released toward M — never before, never while the pulse is still en route.
+      const dwelling = xFireFrom[i] >= 0 && nowMs >= xFireFrom[i] && nowMs < xFireUntil[i];
+      const r = diagramSvg.querySelector('#mult'+i+' .mrect');
+      const xt = diagramSvg.querySelector('#mult'+i+' .mglyph');
+      if(r){
+        if(dwelling){
+          r.setAttribute('fill', 'var(--lr)');
+          r.setAttribute('stroke', 'var(--lr)');
+          r.style.filter = 'drop-shadow(0 0 7px var(--lr))';
+          if(xt) xt.setAttribute('fill', 'var(--bg)');
+        } else {
+          r.setAttribute('fill', 'var(--panel-2)');
+          r.setAttribute('stroke', 'var(--line)');
+          r.style.filter = 'none';
+          if(xt) xt.setAttribute('fill', 'var(--text-faint)');
+        }
+      }
+    }
+
+    const poly = diagramSvg.querySelector('#sumNode polygon');
+    const mGlyph = diagramSvg.querySelector('#sumNode .mglyphM');
+    const mLit = nowMs < mLitUntil;
+    if(poly){
+      if(mLit){
+        poly.setAttribute('fill', 'var(--net)');
+        poly.style.filter = 'drop-shadow(0 0 14px var(--net))';
+        if(mGlyph) mGlyph.setAttribute('fill', 'var(--bg)');
+      } else {
+        poly.setAttribute('fill', 'var(--net-dim)');
+        poly.style.filter = 'none';
+        if(mGlyph) mGlyph.setAttribute('fill', 'var(--net)');
+      }
+    }
+  }
+
+  // ---- pulses (animated sliding signals) ----
+  function spawnPulses(i, nowMs){
+    const etm = effectiveTickMs();
+    const rp = receptorPos(i), dp = delayPos(i);
+    const tripMs = tripMsNow();
+
+    // DELAYED path: receptor(i) -> D(i) [PAUSES for exactly τ ticks] -> X(i)
+    if(i < NUM_D){
+      const travelToD = tripMs * 0.4;
+      const releaseHop = tripMs * 0.6;
+      const holdDur = tau * etm;
+      holdFrom[i] = nowMs + travelToD;
+      holdUntil[i] = holdFrom[i] + holdDur;
+      const inD = xInDelayed(i);
+      pulses.push({
+        pts: [rp, dp, dp, inD],
+        segMs: [travelToD, holdDur, releaseHop],
+        // The receptor->D link stays lit for BOTH the travel segment and the hold segment —
+        // it stays sustained the whole time the signal is at/in D, only handing off to the
+        // D->X link once the signal actually leaves D.
+        wireIds: ['wRD'+i, 'wRD'+i, 'wDel'+i],
+        start: nowMs,
+        color: 'var(--delay)',
+        r: 4.4
+      });
+    }
+
+    // LIVE path: receptor(i) -> X(i-1) directly. Never touches D.
+    if(i >= 1){
+      const inL = xInLive(i-1);
+      pulses.push({
+        pts: [liveStart(i), inL],
+        segMs: [tripMs],
+        wireIds: ['wLive'+(i-1)],
+        start: nowMs,
+        color: 'var(--text)',
+        r: 3.2
+      });
+    }
+  }
+
+  // Sends a bright pulse from X(i) to M. Only ever called once the dwell at X has elapsed,
+  // i.e. after the signal has actually left X — see updateSchedules().
+  function spawnXToMPulse(i, nowMs){
+    const mp = multPos(i);
+    const from = {x: mp.x, y: mp.y + 11};
+    const to = collectorTarget(i);
+    const travelMs = collTripMsNow();
+    pulses.push({
+      pts: [from, to],
+      segMs: [travelMs],
+      wireIds: ['coll'+i],
+      start: nowMs,
+      color: 'var(--lr)',
+      r: 4.6
+    });
+    pendingMArrivals.push(nowMs + travelMs);
+  }
+
+  // Checked every animation frame: releases the X->M pulse once a scheduled dwell ends, and
+  // flashes M once a travelling X->M pulse actually completes its journey.
+  function updateSchedules(nowMs){
+    for(let i=0;i<NUM_D;i++){
+      if(xFireUntil[i] >= 0 && nowMs >= xFireUntil[i] && xPulseSpawnedFor[i] !== xFireFrom[i]){
+        spawnXToMPulse(i, nowMs);
+        xPulseSpawnedFor[i] = xFireFrom[i];
+      }
+    }
+    if(pendingMArrivals.length){
+      const stillPending = [];
+      for(const t of pendingMArrivals){
+        if(nowMs >= t){ mLitUntil = Math.max(mLitUntil, nowMs + 260); }
+        else stillPending.push(t);
+      }
+      pendingMArrivals = stillPending;
+    }
+  }
+
+  function renderPulses(nowMs){
+    if(!pulseLayer) return;
+    pulseLayer.innerHTML = '';
+    pulses = pulses.filter(p=>{
+      const total = p.segMs.reduce((a,b)=>a+b,0);
+      return (nowMs - p.start) < total;
+    });
+    activeWireGlow = new Map();
+    pulses.forEach(p=>{
+      const elapsed = nowMs - p.start;
+      let acc = 0, segIdx = 0;
+      for(; segIdx<p.segMs.length; segIdx++){
+        if(elapsed < acc + p.segMs[segIdx]) break;
+        acc += p.segMs[segIdx];
+      }
+      segIdx = Math.min(segIdx, p.segMs.length-1);
+      const segElapsed = elapsed - acc;
+      const segLen = p.segMs[segIdx] || 0.0001;
+      const frac = Math.max(0, Math.min(1, segElapsed / segLen));
+      const a = p.pts[segIdx], b = p.pts[segIdx+1];
+      const x = a.x + (b.x - a.x) * frac;
+      const y = a.y + (b.y - a.y) * frac;
+      const c = el('circle', {cx:x.toFixed(1), cy:y.toFixed(1), r:p.r, fill:p.color});
+      c.style.filter = 'drop-shadow(0 0 5px ' + p.color + ')';
+      pulseLayer.appendChild(c);
+      if(p.wireIds && p.wireIds[segIdx]){
+        // Every lit link uses the same color as the X->M link, regardless of which signal
+        // (delayed, live, or the X->M output) is travelling across it.
+        activeWireGlow.set(p.wireIds[segIdx], 'var(--lr)');
+      }
+    });
+
+    // D-node hold visualisation: a filling ring + breathing glow for exactly
+    // as long as a signal is genuinely paused in that delay node.
+    const ringR = 15.5, circumference = 2*Math.PI*ringR;
+    for(let i=0;i<NUM_R;i++){
+      const ring = delayRingEls[i], core = delayCoreEls[i];
+      if(!ring || !core) continue;
+      const holding = holdFrom[i] >= 0 && nowMs >= holdFrom[i] && nowMs < holdUntil[i] && (holdUntil[i]-holdFrom[i]) > 1;
+      if(holding){
+        const progress = (nowMs - holdFrom[i]) / (holdUntil[i] - holdFrom[i]);
+        ring.setAttribute('opacity', '1');
+        ring.setAttribute('stroke-dashoffset', (circumference * (1 - progress)).toFixed(1));
+        const pulse = 0.7 + 0.3 * Math.sin(nowMs / 130);
+        core.setAttribute('fill', 'var(--delay)');
+        core.setAttribute('r', (9 + 2 * pulse).toFixed(1));
+        core.style.filter = 'drop-shadow(0 0 ' + (9 + 7 * pulse) + 'px var(--delay))';
+      } else {
+        ring.setAttribute('opacity', '0');
+        core.setAttribute('r', 9);
+      }
+    }
+  }
+
+  function rafLoop(nowMs){
+    updateSchedules(nowMs);
+    renderPulses(nowMs);
+    renderLiveStyling(nowMs);
+    requestAnimationFrame(rafLoop);
+  }
+  requestAnimationFrame(rafLoop);
+
+  // ---- simulation tick ----
+  function tickOnce(){
+    const nowMs = performance.now();
+    const prevCur = historyFrames[0];
+    const newFrame = computeFrame(tick);
+    historyFrames.unshift(newFrame);
+    if(historyFrames.length > 3) historyFrames.pop();
+    const cur = historyFrames[0];
+    const delayed = historyFrames[tau] || zeros();
+
+    // X(i) = D(i) output  ×  live receptor(i+1)
+    const xArr = new Array(NUM_D).fill(0);
+    for(let i=0;i<NUM_D;i++){
+      xArr[i] = delayed[i] * cur[i+1];
+    }
+    const net = xArr.reduce((a,b)=>a+b,0);
+
+    for(let i=0;i<NUM_R;i++){
+      if(cur[i] > 0 && prevCur[i] === 0){ spawnPulses(i, nowMs); }
+    }
+
+    // A NEW coincidence just started logically. Schedule (don't fire yet!) the moment the two
+    // animated inputs will actually, visually meet at X, and how long X dwells before releasing
+    // its pulse onward to M. The X->M pulse itself is only spawned later, in updateSchedules(),
+    // once that dwell has elapsed.
+    for(let i=0;i<NUM_D;i++){
+      if(xArr[i] > 0 && prevXArr[i] === 0){
+        const arrivalAt = nowMs + tripMsNow();
+        xFireFrom[i] = arrivalAt;
+        xFireUntil[i] = arrivalAt + dwellMsNow();
+      }
+    }
+    prevXArr = xArr.slice();
+
+    scopeNet.push(net);
+    if(scopeNet.length > HIST){ scopeNet.shift(); }
+
+    renderTruthState(delayed, cur);
+    renderScope();
+    updateReadout(net);
+    updateInsight(net);
+
+    tick++;
+  }
+
+  // ---- scope ----
+  const scopeSvg = document.getElementById('scopeSvg');
+  function renderScope(){
+    scopeSvg.innerHTML = '';
+    const W = 700, H = 140, padL = 34, padR = 14, padT = 10, padB = 18;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const baseY = padT + plotH;              // output is never negative, so 0 sits on the floor
+    const n = scopeNet.length;
+    const maxV = Math.max(1.5, ...scopeNet);
+
+    scopeSvg.appendChild(el('line', {x1:padL, y1:baseY, x2:W-padR, y2:baseY, stroke:'var(--line-soft)', 'stroke-width':1}));
+    scopeSvg.appendChild(mkText(6, baseY+3, '0', 'var(--text-faint)', 9));
+    scopeSvg.appendChild(mkText(6, padT+8, maxV.toFixed(0), 'var(--text-faint)', 9));
+    if(n < 2){ return; }
+
+    const stepX = plotW / (HIST - 1);
+    const xOf = (idx) => padL + (idx + (HIST - n)) * stepX;
+    const yOf = (v) => baseY - (v / maxV) * (plotH - 6);
+
+    let d = '';
+    scopeNet.forEach((v,idx)=>{
+      d += (idx===0 ? 'M' : 'L') + xOf(idx).toFixed(1) + ',' + yOf(v).toFixed(1) + ' ';
+    });
+    scopeSvg.appendChild(el('path', {d:d.trim(), fill:'none', stroke:'var(--net)', 'stroke-width':2.6,
+      'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+  }
+
+  function updateReadout(net){
+    document.getElementById('roT').textContent = tick;
+    document.getElementById('roNet').textContent = net.toFixed(1);
+  }
+
+  const insightBox = document.getElementById('insightBox');
+  const insightTag = document.getElementById('insightTag');
+  const insightText = document.getElementById('insightText');
+  function tauLabel(){ return tau===0 ? 'no delay (τ=0)' : `a ${tau}-tick delay (τ=${tau})`; }
+  function updateInsight(net){
+    insightBox.className = 'insight mode-' + scenario;
+    if(scenario === 'flash'){
+      insightTag.textContent = 'FLASH HACK · whole retina lit at once';
+      if(tau === 0){
+        insightText.innerHTML = `Every receptor switches on together. With τ=0 there is no delay at all, so each X sees two live neighbours at the same instant and fires — M spikes (now <b>${net.toFixed(1)}</b>). Without a delay, X is just a coincidence detector and can't tell motion from a flash. A full detector's mirror arm would cancel this spike; this single arm can't. Switch to <b>Matched · τ=1</b> to see it ignored.`;
+      } else {
+        insightText.innerHTML = `Every receptor switches on together, but the flash is over before D releases its held signal (${tauLabel()}). By the time the delayed copy reaches X, the neighbour's live signal is gone, so nothing coincides and M stays at <b>${net.toFixed(1)}</b>. The delay is what lets the circuit ignore a change that happens everywhere at once.`;
+      }
+    } else if(scenario === 'toofast'){
+      insightTag.textContent = 'TOO‑FAST HACK · 2 receptors per tick';
+      insightText.innerHTML = `The object jumps <b>two receptors every tick</b>. But each X only ever pairs receptor <i>i</i> (via D) with its immediate neighbour <i>i</i>+1 (live). No matter how you tune the delay line (currently ${tauLabel()}), a two‑step jump never lands exactly one receptor along from where it started. M stays near <b>${net.toFixed(1)}</b> regardless of τ — try the tuning selector above and confirm it never recovers here.`;
+    } else {
+      insightTag.textContent = 'NORMAL MOTION · ' + (direction==='LR' ? 'left → right' : 'right → left') + ' · 1 receptor/tick';
+      if(direction === 'RL'){
+        insightText.innerHTML = `The object moves one receptor per tick, but <b>right‑to‑left</b>. Each X pairs the <i>delayed</i> signal of a receptor with the <i>live</i> signal of its <b>right</b> neighbour, and a right‑to‑left object reaches that right neighbour first, so its live signal is gone before the delayed one is released. M stays at <b>${net.toFixed(1)}</b> at every tuning. This is the arm's null direction; a full detector adds a mirror arm to report it.`;
+      } else if(tau === 1){
+        insightText.innerHTML = `The object moves exactly one receptor per tick, and D holds each signal for ${tauLabel()}. So a receptor's delayed copy leaves D at the very moment its right‑hand neighbour fires live, and the two meet at X. M reads <b>${net.toFixed(1)}</b> while the object is on the array, correctly reporting <b>left‑to‑right</b> motion. This only works when τ=1 — try Slow or Fast tuning and watch it disappear.`;
+      } else {
+        insightText.innerHTML = `The object still moves one receptor per tick, but the circuit is tuned to ${tauLabel()}. A one‑tick‑per‑step object only correlates when D also holds for exactly one tick (τ=1) — every other tuning releases the signal too early or too late to meet its neighbour's live signal. M sits at <b>${net.toFixed(1)}</b>. Switch to <b>Matched · τ=1</b> to see the detector fire.`;
+      }
+    }
+  }
+
+  // ---- controls wiring ----
+  const scenarioSeg = document.getElementById('scenarioSeg');
+  const tauSeg = document.getElementById('tauSeg');
+  const dirBtn = document.getElementById('dirBtn');
+  const playBtn = document.getElementById('playBtn');
+  const stepBtn = document.getElementById('stepBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const speedSlider = document.getElementById('speedSlider');
+
+  function resetSim(){
+    tick = 0;
+    historyFrames = [zeros(), zeros(), zeros()];
+    scopeNet = [];
+    pulses = [];
+    activeWireGlow = new Map();
+    holdFrom = new Array(NUM_R).fill(-1);
+    holdUntil = new Array(NUM_R).fill(-1);
+    prevXArr = new Array(NUM_D).fill(0);
+    xFireFrom = new Array(NUM_D).fill(-1);
+    xFireUntil = new Array(NUM_D).fill(-1);
+    xPulseSpawnedFor = new Array(NUM_D).fill(-1);
+    pendingMArrivals = [];
+    mLitUntil = -1;
+    buildStaticDiagram();
+    renderTruthState(zeros(), zeros());
+    renderLiveStyling(performance.now());
+    renderScope();
+    updateReadout(0);
+    updateInsight(0);
+  }
+
+  scenarioSeg.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    scenario = btn.dataset.scenario;
+    [...scenarioSeg.children].forEach(b=>b.classList.toggle('active', b===btn));
+    dirBtn.disabled = (scenario !== 'normal');
+    resetSim();
+  });
+
+  tauSeg.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    tau = +btn.dataset.tau;
+    [...tauSeg.children].forEach(b=>b.classList.toggle('active', b===btn));
+    resetSim();
+  });
+
+  dirBtn.addEventListener('click', ()=>{
+    if(scenario !== 'normal') return;
+    direction = (direction === 'LR') ? 'RL' : 'LR';
+    dirBtn.textContent = direction === 'LR' ? 'L → R' : 'R → L';
+    resetSim();
+  });
+
+  function setPlaying(p){
+    playing = p;
+    playBtn.textContent = playing ? '⏸' : '▶';
+    playBtn.classList.toggle('playing', playing);
+    if(playing){ startTimer(); } else { stopTimer(); }
+  }
+  playBtn.addEventListener('click', ()=> setPlaying(!playing));
+  stepBtn.addEventListener('click', ()=>{ setPlaying(false); tickOnce(); });
+  resetBtn.addEventListener('click', ()=>{ resetSim(); });
+
+  function startTimer(){
+    stopTimer();
+    const speed = +speedSlider.value;
+    tickIntervalMs = Math.max(90, 900 - speed*75);
+    timer = setInterval(tickOnce, effectiveTickMs());
+  }
+  function stopTimer(){ if(timer){ clearInterval(timer); timer = null; } }
+  speedSlider.addEventListener('input', ()=>{
+    tickIntervalMs = Math.max(90, 900 - (+speedSlider.value)*75);
+    if(playing) startTimer();
+  });
+
+  const slowMoBtn = document.getElementById('slowMoBtn');
+  slowMoBtn.addEventListener('click', ()=>{
+    slowMo = !slowMo;
+    slowMoBtn.classList.toggle('active', slowMo);
+    slowMoBtn.textContent = slowMo ? '🐢 Slow‑mo ×' + SLOWMO_FACTOR : '🐢 Slow‑mo';
+    // Switching speed shouldn't leave the viewer waiting out a whole (now much longer) interval
+    // before anything happens — advance one tick immediately, then resume on the new cadence.
+    if(playing){
+      stopTimer();
+      tickOnce();
+      startTimer();
+    }
+  });
+
+  // ---- init ----
+  tickIntervalMs = Math.max(90, 900 - (+speedSlider.value)*75);
+  resetSim();
+  setPlaying(true);
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metamers, plainly explained</title>
+<style>
+  :root {
+    --bg: #15141a;
+    --panel: #1e1c24;
+    --panel-2: #26232d;
+    --line: #37333f;
+    --ink: #f2eee6;
+    --muted: #a49cb0;
+    --s: #5b8cff;
+    --m: #3fd483;
+    --l: #ff6b52;
+    --amber: #f0b93d;
+    --amber-ink: #2a2108;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, "Noto Serif", serif;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+    padding: clamp(20px, 4vw, 48px);
+  }
+
+  .wrap { max-width: 980px; margin: 0 auto; }
+
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin: 0 0 10px;
+  }
+
+  h1 {
+    font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    font-size: clamp(28px, 4.5vw, 44px);
+    line-height: 1.08;
+    margin: 0 0 14px;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    font-size: clamp(15px, 2vw, 18px);
+    color: var(--muted);
+    max-width: 62ch;
+    line-height: 1.55;
+    margin: 0 0 28px;
+  }
+
+  .analogy {
+    background: var(--panel);
+    border-left: 3px solid var(--amber);
+    border-radius: 4px;
+    padding: 18px 22px;
+    margin-bottom: 32px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: #ddd7e6;
+  }
+  .analogy b { color: var(--ink); }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 30px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .swatch-line { width: 22px; height: 0; border-top: 3px solid var(--ink); flex: none; }
+  .swatch-line.dashed { border-top-style: dashed; }
+  .swatch-line.solid.amber { border-top-color: var(--amber); }
+
+  .step-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+  .step-text {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin: 0 0 16px;
+    max-width: 68ch;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 22px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 22px;
+  }
+  @media (max-width: 760px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  canvas { width: 100%; display: block; }
+
+  .meters {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    justify-content: center;
+  }
+
+  .meter-row { display: flex; align-items: center; gap: 12px; }
+  .meter-name {
+    width: 78px;
+    font-size: 12.5px;
+    font-weight: 700;
+    flex: none;
+  }
+  .meter-track {
+    position: relative;
+    flex: 1;
+    height: 26px;
+    background: var(--panel-2);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .meter-ghost, .meter-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 6px;
+    transition: width 0.15s ease-out;
+  }
+  .meter-ghost {
+    background: transparent;
+    border-right: 2px dashed rgba(255,255,255,0.55);
+  }
+  .meter-fill { opacity: 0.85; }
+
+  .meter-nums {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: var(--muted);
+    width: 108px;
+    flex: none;
+    text-align: right;
+  }
+
+  .banner {
+    margin-top: 6px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+    letter-spacing: 0.01em;
+    transition: background 0.2s, color 0.2s;
+  }
+  .banner.match { background: rgba(63, 212, 131, 0.16); color: #7cf0ab; }
+  .banner.broken { background: rgba(255, 107, 82, 0.16); color: #ff9a86; }
+
+  .swatches {
+    display: flex;
+    gap: 18px;
+    margin-top: 18px;
+  }
+  .swatch-block { flex: 1; text-align: center; }
+  .swatch-box {
+    height: 88px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    transition: background-color 0.15s ease-out;
+  }
+  .swatch-caption {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .controls {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .slider-row label {
+    width: 118px;
+    flex: none;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  input[type="range"] {
+    flex: 1;
+    accent-color: var(--amber);
+  }
+  .slider-val {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    width: 42px;
+    text-align: right;
+    color: var(--muted);
+  }
+
+  .control-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+    align-items: center;
+  }
+
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--ink);
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--muted); }
+  button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+
+  .snap-btn {
+    background: var(--amber);
+    color: var(--amber-ink);
+    border: none;
+  }
+
+  .light-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .light-toggle button {
+    border: none;
+    border-radius: 0;
+    background: var(--panel-2);
+  }
+  .light-toggle button.active {
+    background: var(--amber);
+    color: var(--amber-ink);
+  }
+
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  footer {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--muted);
+    max-width: 68ch;
+  }
+  footer b { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <p class="eyebrow">Color science, plainly</p>
+  <h1>Metamers: when different light looks identical</h1>
+  <p class="subtitle">A metamer is two physically different mixes of light that your eyes cannot tell apart — because they push your three color sensors to the exact same totals.</p>
+
+  <div class="analogy">
+    <b>The idea in one breath:</b> imagine you only had three taste buds — sweet, sour, bitter. Two totally different smoothies, made from completely different fruit, could taste identical to you if they hit those three buds equally hard. Your eyes work the same way. You don't see wavelengths directly — you see three totals, added up by three types of cone. If two different light mixes produce the same three totals, your brain reports the same color, even though the light itself is nothing alike.
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="dot" style="background:var(--s)"></span> S cone — short wavelengths (blue-ish)</div>
+    <div class="legend-item"><span class="dot" style="background:var(--m)"></span> M cone — medium wavelengths (green-ish)</div>
+    <div class="legend-item"><span class="dot" style="background:var(--l)"></span> L cone — long wavelengths (red-ish)</div>
+    <div class="legend-item"><span class="swatch-line dashed"></span> Spectrum A — fixed</div>
+    <div class="legend-item"><span class="swatch-line solid amber"></span> Spectrum B — yours to mix</div>
+  </div>
+
+  <div class="panel">
+    <p class="step-label">1 — Two different recipes of light</p>
+    <p class="step-text">The soft shaded curves are your cones' sensitivity at each wavelength. The two lines are the actual light hitting your eye: Spectrum A never changes. Spectrum B is built from three ingredients — blue, green and red — that you mix yourself, down in the controls.</p>
+
+    <p class="step-label" style="margin-top:22px;">2 — What each cone adds up, and 3 — what you end up seeing</p>
+    <p class="step-text">Each cone doesn't see the whole spectrum — it sums up everything landing on it, weighted by its own sensitivity, into one single number. If all three of those numbers line up between A and B, the two lights read as the same color, even though they're physically different. That's the whole trick.</p>
+
+    <div class="grid">
+      <div>
+        <canvas id="chart" height="260"></canvas>
+      </div>
+      <div class="meters">
+        <div class="meter-row">
+          <span class="meter-name" style="color:var(--s)">S cone</span>
+          <div class="meter-track">
+            <div class="meter-ghost" id="ghost-s"></div>
+            <div class="meter-fill" id="fill-s" style="background:var(--s)"></div>
+          </div>
+          <span class="meter-nums" id="nums-s"></span>
+        </div>
+        <div class="meter-row">
+          <span class="meter-name" style="color:var(--m)">M cone</span>
+          <div class="meter-track">
+            <div class="meter-ghost" id="ghost-m"></div>
+            <div class="meter-fill" id="fill-m" style="background:var(--m)"></div>
+          </div>
+          <span class="meter-nums" id="nums-m"></span>
+        </div>
+        <div class="meter-row">
+          <span class="meter-name" style="color:var(--l)">L cone</span>
+          <div class="meter-track">
+            <div class="meter-ghost" id="ghost-l"></div>
+            <div class="meter-fill" id="fill-l" style="background:var(--l)"></div>
+          </div>
+          <span class="meter-nums" id="nums-l"></span>
+        </div>
+
+        <div class="banner" id="banner">—</div>
+
+        <div class="swatches">
+          <div class="swatch-block">
+            <div class="swatch-box" id="swatch-a"></div>
+            <div class="swatch-caption">Spectrum A looks like this</div>
+          </div>
+          <div class="swatch-block">
+            <div class="swatch-box" id="swatch-b"></div>
+            <div class="swatch-caption">Spectrum B looks like this</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <p class="step-label">Mix spectrum B</p>
+      <div class="slider-row">
+        <label style="color:var(--s)">Blue amount</label>
+        <input type="range" id="slider-b" min="0" max="3" step="0.01" value="0.4">
+        <span class="slider-val" id="val-b">0.40</span>
+      </div>
+      <div class="slider-row">
+        <label style="color:var(--m)">Green amount</label>
+        <input type="range" id="slider-g" min="0" max="3" step="0.01" value="1.3">
+        <span class="slider-val" id="val-g">1.30</span>
+      </div>
+      <div class="slider-row">
+        <label style="color:var(--l)">Red amount</label>
+        <input type="range" id="slider-r" min="0" max="3" step="0.01" value="0.6">
+        <span class="slider-val" id="val-r">0.60</span>
+      </div>
+
+      <div class="control-buttons">
+        <button class="snap-btn" id="snap-btn">Snap to exact metamer</button>
+        <span style="width:8px"></span>
+        <span style="font-size:13px; color:var(--muted); font-weight:600;">Light source:</span>
+        <div class="light-toggle">
+          <button id="light-day" class="active">Daylight</button>
+          <button id="light-tungsten">Tungsten bulb</button>
+        </div>
+      </div>
+
+      <p class="hint" id="hint-text">Try it: press "Snap to exact metamer" to find a mix of blue, green and red that matches Spectrum A under daylight. Then switch to the tungsten bulb without touching the sliders — watch the match break. The two spectra didn't change. The light did.</p>
+    </div>
+  </div>
+
+  <footer>
+    <b>Why this matters outside a physics demo:</b> two paint swatches, or two shirts, can be dyed with completely different pigments yet look identically colored under one type of light — store fluorescents, say — and then look mismatched the moment you step outside into daylight. Nothing about the paint changed. Only the light did. Your eyes were never comparing the objects directly — only the three totals your cones could extract, under one particular light. That mismatch, and the match that preceded it, are both called <b>metamerism</b>.
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  // ---------- wavelength grid ----------
+  const W0 = 400, W1 = 700, N = 301;
+  const wl = new Float64Array(N);
+  for (let i = 0; i < N; i++) wl[i] = W0 + i;
+
+  function gauss(x, center, sigma) {
+    const z = (x - center) / sigma;
+    return Math.exp(-0.5 * z * z);
+  }
+
+  // ---------- precomputed curves ----------
+  const Sc = new Float64Array(N), Mc = new Float64Array(N), Lc = new Float64Array(N);
+  const dayArr = new Float64Array(N), tungArr = new Float64Array(N);
+  const specA = new Float64Array(N);
+  const blueC = new Float64Array(N), greenC = new Float64Array(N), redC = new Float64Array(N);
+
+  for (let i = 0; i < N; i++) {
+    const w = wl[i];
+    Sc[i] = gauss(w, 445, 25);
+    Mc[i] = gauss(w, 535, 35);
+    Lc[i] = gauss(w, 565, 40);
+    dayArr[i] = 0.8 + 0.4 * gauss(w, 550, 90);
+    tungArr[i] = 0.15 + 1.2 * gauss(w, 620, 80);
+    specA[i] = gauss(w, 550, 55);
+    blueC[i] = gauss(w, 450, 20);
+    greenC[i] = gauss(w, 530, 25);
+    redC[i] = gauss(w, 620, 30);
+  }
+
+  function response(spectrum, light) {
+    let s = 0, m = 0, l = 0;
+    for (let i = 0; i < N; i++) {
+      const v = spectrum[i] * light[i];
+      s += v * Sc[i]; m += v * Mc[i]; l += v * Lc[i];
+    }
+    return [s, m, l];
+  }
+
+  function buildSpecB(amounts) {
+    const out = new Float64Array(N);
+    for (let i = 0; i < N; i++) {
+      const v = amounts.b * blueC[i] + amounts.g * greenC[i] + amounts.r * redC[i];
+      out[i] = v < 0 ? 0 : v;
+    }
+    return out;
+  }
+
+  function solve3(M, target) {
+    function det(m) {
+      return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+           - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+           + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+    }
+    const D = det(M);
+    if (Math.abs(D) < 1e-9) return [0, 0, 0];
+    function withCol(col, vec) {
+      return M.map((row, i) => row.map((v, j) => (j === col ? vec[i] : v)));
+    }
+    return [det(withCol(0, target)) / D, det(withCol(1, target)) / D, det(withCol(2, target)) / D];
+  }
+
+  function perceivedColor(resp) {
+    const max = Math.max(resp[0], resp[1], resp[2], 1e-9);
+    const s = resp[0] / max, m = resp[1] / max, l = resp[2] / max;
+    const r = Math.round(255 * Math.min(1, l));
+    const g = Math.round(255 * Math.min(1, m));
+    const b = Math.round(255 * Math.min(1, s));
+    return `rgb(${r},${g},${b})`;
+  }
+
+  // ---------- state ----------
+  const state = { light: 'day', amounts: { b: 0.4, g: 1.3, r: 0.6 } };
+
+  // ---------- DOM ----------
+  const canvas = document.getElementById('chart');
+  const ctx = canvas.getContext('2d');
+
+  const els = {
+    sliderB: document.getElementById('slider-b'),
+    sliderG: document.getElementById('slider-g'),
+    sliderR: document.getElementById('slider-r'),
+    valB: document.getElementById('val-b'),
+    valG: document.getElementById('val-g'),
+    valR: document.getElementById('val-r'),
+    ghostS: document.getElementById('ghost-s'),
+    ghostM: document.getElementById('ghost-m'),
+    ghostL: document.getElementById('ghost-l'),
+    fillS: document.getElementById('fill-s'),
+    fillM: document.getElementById('fill-m'),
+    fillL: document.getElementById('fill-l'),
+    numsS: document.getElementById('nums-s'),
+    numsM: document.getElementById('nums-m'),
+    numsL: document.getElementById('nums-l'),
+    banner: document.getElementById('banner'),
+    swatchA: document.getElementById('swatch-a'),
+    swatchB: document.getElementById('swatch-b'),
+    lightDay: document.getElementById('light-day'),
+    lightTungsten: document.getElementById('light-tungsten'),
+    snapBtn: document.getElementById('snap-btn'),
+    hint: document.getElementById('hint-text')
+  };
+
+  function currentLight() { return state.light === 'day' ? dayArr : tungArr; }
+
+  function drawChart() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const w = rect.width || 480, h = 260;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const padL = 34, padR = 10, padT = 12, padB = 26;
+    const plotW = w - padL - padR, plotH = h - padT - padB;
+
+    const specB = buildSpecB(state.amounts);
+    const light = currentLight();
+
+    const maxCone = 1.05;
+    const maxSpec = Math.max(
+      1.05,
+      ...Array.from(specA),
+      ...Array.from(specB),
+      ...Array.from(light) * 0
+    );
+    // normalize spectra/light for plotting on the same 0..1.2ish axis as cones
+    const maxLine = Math.max(1.05, ...specA, ...specB);
+
+    function x(wv) { return padL + ((wv - W0) / (W1 - W0)) * plotW; }
+    function y(v, maxV) { return padT + plotH - (v / maxV) * plotH; }
+
+    // baseline
+    ctx.strokeStyle = '#37333f';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT + plotH);
+    ctx.lineTo(padL + plotW, padT + plotH);
+    ctx.stroke();
+
+    // x ticks
+    ctx.fillStyle = '#a49cb0';
+    ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    for (let t = 400; t <= 700; t += 50) {
+      ctx.fillText(String(t), x(t), padT + plotH + 16);
+    }
+
+    function fillCurve(arr, color, alpha) {
+      ctx.beginPath();
+      ctx.moveTo(x(W0), y(0, maxCone));
+      for (let i = 0; i < N; i++) ctx.lineTo(x(wl[i]), y(arr[i], maxCone));
+      ctx.lineTo(x(W1), y(0, maxCone));
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    fillCurve(Sc, '#5b8cff', 0.14);
+    fillCurve(Mc, '#3fd483', 0.14);
+    fillCurve(Lc, '#ff6b52', 0.14);
+
+    function strokeCurve(arr, color, dashed) {
+      ctx.beginPath();
+      ctx.setLineDash(dashed ? [6, 4] : []);
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = color;
+      for (let i = 0; i < N; i++) {
+        const px = x(wl[i]), py = y(arr[i], maxLine);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    strokeCurve(specA, '#f2eee6', true);
+    strokeCurve(specB, '#f0b93d', false);
+  }
+
+  function render() {
+    const specB = buildSpecB(state.amounts);
+    const light = currentLight();
+    const respA = response(specA, light);
+    const respB = response(specB, light);
+
+    const scaleMax = Math.max(...respA, ...respB, 1e-6) * 1.15;
+
+    function pct(v) { return Math.max(0, Math.min(100, (v / scaleMax) * 100)); }
+
+    els.ghostS.style.width = pct(respA[0]) + '%';
+    els.ghostM.style.width = pct(respA[1]) + '%';
+    els.ghostL.style.width = pct(respA[2]) + '%';
+    els.fillS.style.width = pct(respB[0]) + '%';
+    els.fillM.style.width = pct(respB[1]) + '%';
+    els.fillL.style.width = pct(respB[2]) + '%';
+
+    els.numsS.textContent = `A ${respA[0].toFixed(1)}  ·  B ${respB[0].toFixed(1)}`;
+    els.numsM.textContent = `A ${respA[1].toFixed(1)}  ·  B ${respB[1].toFixed(1)}`;
+    els.numsL.textContent = `A ${respA[2].toFixed(1)}  ·  B ${respB[2].toFixed(1)}`;
+
+    const relDiffs = respA.map((v, i) => Math.abs(v - respB[i]) / Math.max(v, respB[i], 1e-6));
+    const maxRel = Math.max(...relDiffs);
+    const isMatch = maxRel < 0.03;
+
+    els.banner.textContent = isMatch
+      ? '✓ Metamer match — same cone totals, same perceived color'
+      : '✕ Match broken — different cone totals, different perceived color';
+    els.banner.className = 'banner ' + (isMatch ? 'match' : 'broken');
+
+    els.swatchA.style.backgroundColor = perceivedColor(respA);
+    els.swatchB.style.backgroundColor = perceivedColor(respB);
+
+    drawChart();
+  }
+
+  // ---------- controls ----------
+  function bindSlider(input, valEl, key) {
+    input.addEventListener('input', () => {
+      state.amounts[key] = parseFloat(input.value);
+      valEl.textContent = state.amounts[key].toFixed(2);
+      render();
+    });
+  }
+  bindSlider(els.sliderB, els.valB, 'b');
+  bindSlider(els.sliderG, els.valG, 'g');
+  bindSlider(els.sliderR, els.valR, 'r');
+
+  els.lightDay.addEventListener('click', () => {
+    state.light = 'day';
+    els.lightDay.classList.add('active');
+    els.lightTungsten.classList.remove('active');
+    els.hint.textContent = 'You\'re back under daylight. If you snapped a match earlier, it should be restored here — but check the tungsten bulb again after adjusting the sliders.';
+    render();
+  });
+  els.lightTungsten.addEventListener('click', () => {
+    state.light = 'tungsten';
+    els.lightTungsten.classList.add('active');
+    els.lightDay.classList.remove('active');
+    els.hint.textContent = 'Under the tungsten bulb now. Notice the bars and colors likely no longer agree — a metamer found under one light source is not guaranteed to hold under another.';
+    render();
+  });
+
+  els.snapBtn.addEventListener('click', () => {
+    const light = currentLight();
+    const colB = response(blueC, light);
+    const colG = response(greenC, light);
+    const colR = response(redC, light);
+    const M = [
+      [colB[0], colG[0], colR[0]],
+      [colB[1], colG[1], colR[1]],
+      [colB[2], colG[2], colR[2]]
+    ];
+    const target = response(specA, light);
+    let amounts = solve3(M, target);
+    amounts = amounts.map(v => Math.max(0, Math.min(3, v)));
+
+    state.amounts = { b: amounts[0], g: amounts[1], r: amounts[2] };
+    els.sliderB.value = amounts[0]; els.valB.textContent = amounts[0].toFixed(2);
+    els.sliderG.value = amounts[1]; els.valG.textContent = amounts[1].toFixed(2);
+    els.sliderR.value = amounts[2]; els.valR.textContent = amounts[2].toFixed(2);
+
+    els.hint.textContent = `Snapped to a match under ${state.light === 'day' ? 'daylight' : 'the tungsten bulb'}. Now flip the light toggle without touching the sliders and watch the match break.`;
+    render();
+  });
+
+  window.addEventListener('resize', () => drawChart());
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Resources</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202638;
+      --muted: #687386;
+      --accent: #5267d8;
+      --surface: #ffffff;
+      --background: #f4f6fb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 48px 20px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--background);
+    }
+
+    main {
+      width: min(900px, 100%);
+      margin: 0 auto;
+    }
+
+    header { margin-bottom: 30px; }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 5vw, 2.7rem);
+      letter-spacing: -1px;
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .resources {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .resource {
+      display: block;
+      padding: 22px;
+      min-height: 132px;
+      color: inherit;
+      text-decoration: none;
+      background: var(--surface);
+      border: 1px solid #e4e8f1;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(31, 42, 68, 0.04);
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .resource:hover, .resource:focus-visible {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 9px 22px rgba(31, 42, 68, 0.09);
+      outline: none;
+    }
+
+    .resource h2 {
+      margin: 0 0 9px;
+      font-size: 1.08rem;
+    }
+
+    .resource p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .arrow {
+      display: inline-block;
+      margin-top: 15px;
+      color: var(--accent);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Study Resources</h1>
+      <p>Choose a resource below to open it.</p>
+    </header>
+
+    <section class="resources" aria-label="Study resources">
+      <a class="resource" href="Psychopathology.html">
+        <h2>Psychopathology</h2>
+        <p>Explore the psychopathology study resource.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
+
+      <a class="resource" href="color_opponent_process_.html">
+        <h2>Colour Opponent Process</h2>
+        <p>Explore the colour opponent process resource.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
+
+      <a class="resource" href="hr-detector_.html">
+        <h2>Heart Rate Detector</h2>
+        <p>Open the heart rate detector.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
+
+      <a class="resource" href="metamer-explainer.html">
+        <h2>Metamer Explainer</h2>
+        <p>Learn about metamers and colour perception.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
+
+      <a class="resource" href="reichardt_.html">
+        <h2>Reichardt Detector</h2>
+        <p>Explore the Reichardt detector resource.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
+    </section>
+
+    <footer>
+      <a href="https://github.com/ljmorris-cloud/study">View project on GitHub</a>
+    </footer>
+  </main>
+</body>
+</html>

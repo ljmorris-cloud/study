@@ -1,139 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adara's Study </title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Resources</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202638;
+      --muted: #687386;
+      --accent: #5267d8;
+      --surface: #ffffff;
+      --background: #f4f6fb;
+    }
 
-    <style>
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: #1a1d21;
-            margin: 0;
-            padding: 40px 20px;
-            color: #e6e6e6;
-        }
+    * { box-sizing: border-box; }
 
-        .container {
-            max-width: 900px;
-            width: 100%;
-            margin: auto;
-        }
+    body {
+      margin: 0;
+      padding: 48px 20px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: var(--background);
+    }
 
-        h1 {
-            text-align: center;
-            font-weight: 600;
-            color: #f0f0f0;
-            margin-bottom: 10px;
-        }
+    main {
+      width: min(900px, 100%);
+      margin: 0 auto;
+    }
 
-        .intro {
-            text-align: center;
-            color: #aaa;
-            margin-bottom: 35px;
-        }
+    header { margin-bottom: 30px; }
 
-        .section-title {
-            color: #f0f0f0;
-            font-size: 1.35em;
-            font-weight: 600;
-            margin: 35px 0 15px;
-            border-bottom: 1px solid #444;
-            padding-bottom: 8px;
-        }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(2rem, 5vw, 2.7rem);
+      letter-spacing: -1px;
+    }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
+    header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
 
-        .card {
-            background: #2a2e33;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-align: center;
-        }
+    .resources {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
 
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
-        }
+    .resource {
+      display: block;
+      padding: 22px;
+      min-height: 132px;
+      color: inherit;
+      text-decoration: none;
+      background: var(--surface);
+      border: 1px solid #e4e8f1;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(31, 42, 68, 0.04);
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
 
-        .card a {
-            text-decoration: none;
-            color: #66aaff;
-            font-size: 1.2em;
-            font-weight: 600;
-        }
+    .resource:hover, .resource:focus-visible {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      box-shadow: 0 9px 22px rgba(31, 42, 68, 0.09);
+      outline: none;
+    }
 
-        .desc {
-            margin-top: 10px;
-            color: #cfcfcf;
-            font-size: 0.95em;
-            line-height: 1.5;
-        }
+    .resource h2 {
+      margin: 0 0 9px;
+      font-size: 1.08rem;
+    }
 
-        .footer {
-            text-align: center;
-            color: #777;
-            margin-top: 40px;
-            font-size: 0.85em;
-        }
+    .resource p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
 
-        @media (max-width: 600px) {
-            body {
-                padding: 25px 15px;
-            }
+    .arrow {
+      display: inline-block;
+      margin-top: 15px;
+      color: var(--accent);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
 
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    footer {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    footer a { color: var(--accent); }
+  </style>
 </head>
-
 <body>
+  <main>
+    <header>
+      <h1>Study Resources</h1>
+      <p>Choose a resource below to open it.</p>
+    </header>
 
-<div class="container">
+    <section class="resources" aria-label="Study resources">
+      <a class="resource" href="Psychopathology.html">
+        <h2>Psychopathology</h2>
+        <p>Explore the psychopathology study resource.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
 
-    <h1>Adara's Study Materials</h1>
+      <a class="resource" href="color_opponent_process_.html">
+        <h2>Colour Opponent Process</h2>
+        <p>Explore the colour opponent process resource.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
 
-    <div class="intro">
-        App Development Interactives
-    </div>
+      <a class="resource" href="hr-detector_.html">
+        <h2>Heart Rate Detector</h2>
+        <p>Open the heart rate detector.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
 
+      <a class="resource" href="metamer-explainer.html">
+        <h2>Metamer Explainer</h2>
+        <p>Learn about metamers and colour perception.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
 
-    <!-- PSYCHOLOGY-->
+      <a class="resource" href="reichardt_.html">
+        <h2>Reichardt Detector</h2>
+        <p>Explore the Reichardt detector resource.</p>
+        <span class="arrow">Open resource →</span>
+      </a>
+    </section>
 
-    <div class="section-title">Psychopathology Quiz</div>
-
-    <div class="grid">
-
-
-        <div class="card">
-            <a href="Psychopathology.html" target="_blank" rel="noopener">
-          Psychopathology Revision Quiz
-            </a>
-            <div class="desc">
-             Revision for Psychopathology Exam
-            </div>
-        </div>
-
-        
-
-
-        
-    </div>
-
-
-    <div class="footer">
-        Study
-    </div>
-
-</div>
-
+    <footer>
+      <a href="https://github.com/ljmorris-cloud/study">View project on GitHub</a>
+    </footer>
+  </main>
 </body>
 </html>
